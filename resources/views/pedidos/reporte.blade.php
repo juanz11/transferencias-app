@@ -18,7 +18,8 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
+                                    <th>Fecha Transferencia</th>
+                                    <th>Fecha Confirmación</th>
                                     <th>Visitador</th>
                                     <th>Producto</th>
                                     <th>Cantidad</th>
@@ -30,7 +31,8 @@
                                 @if($tipoVista === 'agrupado')
                                     @foreach($pedidosAgrupados as $pedido)
                                         <tr>
-                                            <td>{{ $pedido['fecha']->format('d/m/Y') }}</td>
+                                            <td>{{ $pedido['fecha_transferencia']->format('d/m/Y') }}</td>
+                                            <td>{{ $pedido['fecha_confirmacion']->format('d/m/Y') }}</td>
                                             <td>{{ $pedido['visitador'] }}</td>
                                             <td>{{ $pedido['producto'] }}</td>
                                             <td><strong>{{ $pedido['cantidad'] }}</strong></td>
@@ -42,6 +44,7 @@
                                     @foreach($pedidos as $pedido)
                                         <tr>
                                             <td>{{ $pedido->transferenciaConfirmada->transferencia->fecha_transferencia->format('d/m/Y') }}</td>
+                                            <td>{{ $pedido->transferenciaConfirmada->created_at->format('d/m/Y') }}</td>
                                             <td>{{ $pedido->transferenciaConfirmada->transferencia->visitador->nombre }}</td>
                                             <td>{{ $pedido->producto->nombre }}</td>
                                             <td>{{ $pedido->cantidad }}</td>

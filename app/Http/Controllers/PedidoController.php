@@ -19,8 +19,8 @@ class PedidoController extends Controller
         $query = PedidoConfirmado::with(['transferenciaConfirmada.transferencia.visitador', 'producto']);
 
         if ($request->fecha_inicio && $request->fecha_fin) {
-            $query->whereHas('transferenciaConfirmada.transferencia', function($q) use ($request) {
-                $q->whereBetween('fecha_transferencia', [
+            $query->whereHas('transferenciaConfirmada', function($q) use ($request) {
+                $q->whereBetween('created_at', [
                     $request->fecha_inicio,
                     $request->fecha_fin
                 ]);
@@ -43,7 +43,8 @@ class PedidoController extends Controller
                 ->map(function ($grupo) {
                     $primerPedido = $grupo->first();
                     return [
-                        'fecha' => $primerPedido->transferenciaConfirmada->transferencia->fecha_transferencia,
+                        'fecha_transferencia' => $primerPedido->transferenciaConfirmada->transferencia->fecha_transferencia,
+                        'fecha_confirmacion' => $primerPedido->transferenciaConfirmada->created_at,
                         'visitador' => $primerPedido->transferenciaConfirmada->transferencia->visitador->nombre,
                         'producto' => $primerPedido->producto->nombre,
                         'cantidad' => $grupo->sum('cantidad'),
