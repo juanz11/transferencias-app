@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PedidoController extends Controller
 {
@@ -14,7 +15,7 @@ class PedidoController extends Controller
         return view('pedidos.index', compact('visitadores'));
     }
 
-    public function reportePedidos(Request $request)
+    private function getPedidosData(Request $request)
     {
         $query = PedidoConfirmado::with(['transferenciaConfirmada.transferencia.visitador', 'producto']);
 
@@ -79,12 +80,24 @@ class PedidoController extends Controller
 
         $totalProductos = $pedidos->sum('cantidad');
 
-        return view('pedidos.reporte', compact(
-            'pedidos',
-            'pedidosAgrupados',
-            'resumenVisitador',
-            'totalProductos',
-            'tipoVista'
-        ));
+        return [
+            'pedidos' => $pedidos,
+            'pedidosAgrupados' => $pedidosAgrupados,
+            'resumenVisitador' => $resumenVisitador,
+            'totalProductos' => $totalProductos,
+            'tipoVista' => $tipoVista
+        ];
+    }
+
+    public function reportePedidos(Request $request)
+    {
+        $data = $this->getPedidosData($request);
+        
+        if ($request->formato === 'pdf') {
+            $pdf = PDF::loadView('pedidos.pdf', $data);
+            return $pdf->download('reporte-pedidos.pdf');
+        }
+
+        return view('pedidos.reporte', $data);
     }
 }

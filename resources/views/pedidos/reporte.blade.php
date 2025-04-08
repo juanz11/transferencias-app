@@ -8,7 +8,10 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <span>Reporte de Pedidos - {{ $tipoVista === 'agrupado' ? 'Vista Agrupada' : 'Vista Individual' }}</span>
-                        <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
+                        <div>
+                            <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF</a>
+                            <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
+                        </div>
                     </div>
                 </div>
 
