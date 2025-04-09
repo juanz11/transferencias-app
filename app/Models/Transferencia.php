@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Visitador;
+use App\Models\Cliente;
 
 class Transferencia extends Model
 {
@@ -28,6 +29,11 @@ class Transferencia extends Model
     public function visitador()
     {
         return $this->belongsTo(Visitador::class, 'visitador_id');
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     public function confirmacion()

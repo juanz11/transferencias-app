@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
+use App\Models\Drogeria;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -12,12 +13,17 @@ class PedidoController extends Controller
     public function index()
     {
         $visitadores = Visitador::all();
-        return view('pedidos.index', compact('visitadores'));
+        $drogerias = Drogeria::all();
+        return view('pedidos.index', compact('visitadores', 'drogerias'));
     }
 
     private function getPedidosData(Request $request)
     {
-        $query = PedidoConfirmado::with(['transferenciaConfirmada.transferencia.visitador', 'producto']);
+        $query = PedidoConfirmado::with([
+            'transferenciaConfirmada.transferencia.visitador',
+            'transferenciaConfirmada.transferencia.cliente',
+            'producto'
+        ]);
 
         if ($request->fecha_inicio && $request->fecha_fin) {
             $query->whereHas('transferenciaConfirmada', function($q) use ($request) {
@@ -31,6 +37,12 @@ class PedidoController extends Controller
         if ($request->visitador_id) {
             $query->whereHas('transferenciaConfirmada.transferencia', function($q) use ($request) {
                 $q->where('visitador_id', $request->visitador_id);
+            });
+        }
+
+        if ($request->drogueria_id) {
+            $query->whereHas('transferenciaConfirmada.transferencia.cliente', function($q) use ($request) {
+                $q->where('drogueria', $request->drogueria_id);
             });
         }
 
@@ -92,6 +104,8 @@ class PedidoController extends Controller
     public function reportePedidos(Request $request)
     {
         $data = $this->getPedidosData($request);
+        $drogerias = Drogeria::all();
+        $data['drogerias'] = $drogerias;
         
         if ($request->formato === 'pdf') {
             $pdf = PDF::loadView('pedidos.pdf', $data);

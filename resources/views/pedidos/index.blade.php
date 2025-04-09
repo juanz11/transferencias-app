@@ -35,6 +35,19 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
+                                    <label for="drogueria_id">Droguería</label>
+                                    <select name="drogueria_id" id="drogueria_id" class="form-control">
+                                        <option value="">Todas las droguerías</option>
+                                        @foreach($drogerias as $drogueria)
+                                            <option value="{{ $drogueria->id }}">{{ $drogueria->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <div class="form-group">
                                     <label for="tipo_vista">Tipo de Vista</label>
                                     <select name="tipo_vista" id="tipo_vista" class="form-control">
                                         <option value="individual">Productos Individuales</option>
@@ -42,9 +55,7 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-12">
+                            <div class="col-md-9">
                                 <button type="submit" class="btn btn-primary">Generar Reporte</button>
                             </div>
                         </div>
