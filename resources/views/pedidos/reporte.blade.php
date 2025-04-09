@@ -28,6 +28,7 @@
                                     <th>Cantidad</th>
                                     <th>Descuento</th>
                                     <th>N° Transferencia</th>
+                                    <th>Ganancia</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -41,6 +42,13 @@
                                             <td><strong>{{ $pedido['cantidad'] }}</strong></td>
                                             <td>{{ $pedido['descuento'] }}%</td>
                                             <td>{{ $pedido['transferencias'] }}</td>
+                                            <td>
+                                                @php
+                                                    $producto = \App\Models\Producto::where('nombre', $pedido['producto'])->first();
+                                                    $ganancia = $producto ? $pedido['cantidad'] * $producto->comision : 0;
+                                                @endphp
+                                                ${{ number_format($ganancia, 2) }}
+                                            </td>
                                         </tr>
                                     @endforeach
                                 @else
@@ -53,6 +61,12 @@
                                             <td>{{ $pedido->cantidad }}</td>
                                             <td>{{ $pedido->descuento }}%</td>
                                             <td>{{ $pedido->transferenciaConfirmada->transferencia->transferencia_numero }}</td>
+                                            <td>
+                                                @php
+                                                    $ganancia = $pedido->cantidad * $pedido->producto->comision;
+                                                @endphp
+                                                ${{ number_format($ganancia, 2) }}
+                                            </td>
                                         </tr>
                                     @endforeach
                                 @endif
@@ -69,27 +83,43 @@
                                     <th>Visitador</th>
                                     <th>Producto</th>
                                     <th>Cantidad Total</th>
+                                    <th>Ganancia Total</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $gananciaTotal = 0;
+                                @endphp
                                 @foreach($resumenVisitador as $grupo)
+                                    @php
+                                        $gananciaVisitador = 0;
+                                    @endphp
                                     @foreach($grupo['productos'] as $index => $producto)
+                                        @php
+                                            $productoModel = \App\Models\Producto::where('nombre', $producto['producto'])->first();
+                                            $ganancia = $productoModel ? $producto['cantidad'] * $productoModel->comision : 0;
+                                            $gananciaVisitador += $ganancia;
+                                            $gananciaTotal += $ganancia;
+                                        @endphp
                                         <tr>
                                             @if($index === 0)
                                                 <td rowspan="{{ count($grupo['productos']) }}">{{ $grupo['visitador'] }}</td>
                                             @endif
                                             <td>{{ $producto['producto'] }}</td>
                                             <td>{{ $producto['cantidad'] }}</td>
+                                            <td>${{ number_format($ganancia, 2) }}</td>
                                         </tr>
                                     @endforeach
                                     <tr class="table-secondary">
                                         <td colspan="2" class="text-end"><strong>Total del Visitador:</strong></td>
                                         <td><strong>{{ $grupo['total_visitador'] }}</strong></td>
+                                        <td><strong>${{ number_format($gananciaVisitador, 2) }}</strong></td>
                                     </tr>
                                 @endforeach
                                 <tr class="table-dark">
                                     <td colspan="2" class="text-end"><strong>Total General:</strong></td>
                                     <td><strong>{{ $totalProductos }}</strong></td>
+                                    <td><strong>${{ number_format($gananciaTotal, 2) }}</strong></td>
                                 </tr>
                             </tbody>
                         </table>
