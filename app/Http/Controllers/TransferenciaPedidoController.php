@@ -12,6 +12,7 @@ use App\Models\Visitador;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 
 class TransferenciaPedidoController extends Controller
 {
@@ -46,7 +47,7 @@ class TransferenciaPedidoController extends Controller
 
             // Crear la transferencia
             $transferencia = Transferencia::create([
-                'user_id' => 1, // Usuario fijo con ID 1
+                'user_id' => auth()->id(),
                 'visitador_id' => $request->visitador_id,
                 'cliente_id' => $cliente->id,
                 'codigo_cliente' => $request->codigo_cliente,
@@ -59,7 +60,7 @@ class TransferenciaPedidoController extends Controller
 
             // Crear la transferencia confirmada
             $transferenciaConfirmada = TransferenciaConfirmada::create([
-                'user_id' => 1, // Usuario fijo con ID 1
+                'user_id' => auth()->id(),
                 'transferencia_id' => $transferencia->id
             ]);
 
