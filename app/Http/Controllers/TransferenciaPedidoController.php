@@ -9,8 +9,10 @@ use App\Models\TransferenciaConfirmada;
 use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\Visitador;
+use App\Mail\TransferenciaConfirmada as TransferenciaConfirmadaMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 
@@ -44,6 +46,9 @@ class TransferenciaPedidoController extends Controller
 
             // Obtener el cliente por código_cliente
             $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
+            
+            // Obtener el visitador para el email
+            $visitador = Visitador::findOrFail($request->visitador_id);
 
             // Crear la transferencia
             $transferencia = Transferencia::create([
@@ -64,6 +69,7 @@ class TransferenciaPedidoController extends Controller
                 'transferencia_id' => $transferencia->id
             ]);
 
+            $calculos = [];
             // Crear los pedidos y pedidos confirmados
             foreach ($request->productos as $producto) {
                 // Crear pedido
@@ -75,12 +81,29 @@ class TransferenciaPedidoController extends Controller
                 ]);
 
                 // Crear pedido confirmado
-                PedidoConfirmado::create([
+                $pedidoConfirmado = PedidoConfirmado::create([
                     'transferencia_confirmada_id' => $transferenciaConfirmada->id,
                     'producto_id' => $producto['id'],
                     'cantidad' => $producto['cantidad'],
                     'descuento' => $producto['descuento'] ?? 0
                 ]);
+
+                // Agregar a los cálculos para el email
+                $productoInfo = Producto::find($producto['id']);
+                $calculo = new \stdClass();
+                $calculo->productos = $productoInfo;
+                $calculo->cantidad = $producto['cantidad'];
+                $calculo->comision = $productoInfo->comision ?? 0;
+                $calculo->total = ($producto['cantidad'] * $productoInfo->comision);
+                $calculos[] = $calculo;
+            }
+
+            // Obtener la droguería (ajusta esto según tu estructura)
+            $drogueria = (object)['nombre' => 'Tu Droguería']; // Reemplaza esto con la obtención real de la droguería
+
+            // Enviar el email
+            if ($visitador->email) {
+                Mail::to($visitador->email)->send(new TransferenciaConfirmadaMail($transferenciaConfirmada, $calculos, $drogueria));
             }
 
             DB::commit();
