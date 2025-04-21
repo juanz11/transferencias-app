@@ -10,6 +10,7 @@ use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada as TransferenciaConfirmadaModel;
 use App\Models\PedidoConfirmado;
 use App\Models\Drogeria;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -86,10 +87,20 @@ class TransferenciaPedidoController extends Controller
                 ];
             }
 
-            // Enviar el email
+            // Enviar el email al visitador y a todos los usuarios
+            $recipients = collect();
+            
+            // Agregar el email del visitador si existe
             if ($visitador->email) {
-                Mail::to($visitador->email)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
+                $recipients->push($visitador->email);
             }
+            
+            // Agregar los emails de todos los usuarios
+            $userEmails = User::whereNotNull('email')->pluck('email');
+            $recipients = $recipients->merge($userEmails)->unique();
+            
+            // Enviar el correo a todos los destinatarios
+            Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
 
             DB::commit();
             return redirect()->route('transferencias.index')
