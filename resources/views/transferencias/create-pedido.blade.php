@@ -1,5 +1,22 @@
 @extends('layouts.app')
 
+@section('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-selection {
+        height: 38px !important;
+        padding: 5px !important;
+    }
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ced4da !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="row">
     <div class="col-12">
@@ -173,8 +190,40 @@
 </div>
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    $(document).ready(function() {
+        // Destruir instancias previas de Select2 si existen
+        if ($.fn.select2) {
+            $('#visitador_id').select2('destroy');
+            $('#cliente_id').select2('destroy');
+        }
+
+        // Inicializar Select2 para visitadores
+        $('#visitador_id').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Seleccione un visitador',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Inicializar Select2 para clientes
+        $('#cliente_id').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Buscar por nombre o código',
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "No se encontraron resultados";
+                },
+                searching: function() {
+                    return "Buscando...";
+                }
+            }
+        });
+
         const productosContainer = document.getElementById('productos-list');
         const addProductoBtn = document.getElementById('add-producto');
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
