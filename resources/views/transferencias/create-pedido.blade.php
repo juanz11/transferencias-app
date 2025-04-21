@@ -194,10 +194,14 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Destruir instancias previas de Select2 si existen
-        if ($.fn.select2) {
-            $('#visitador_id').select2('destroy');
-            $('#cliente_id').select2('destroy');
+        // Función para inicializar Select2 en un elemento
+        function initializeSelect2(element) {
+            $(element).select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione un producto',
+                allowClear: true,
+                width: '100%'
+            });
         }
 
         // Inicializar Select2 para visitadores
@@ -224,12 +228,23 @@
             }
         });
 
+        // Inicializar Select2 para los productos existentes
+        $('.producto-select').each(function() {
+            initializeSelect2(this);
+        });
+
         const productosContainer = document.getElementById('productos-list');
         const addProductoBtn = document.getElementById('add-producto');
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
 
         addProductoBtn.addEventListener('click', function() {
             const productoTemplate = document.querySelector('.producto-item').cloneNode(true);
+            
+            // Destruir Select2 existente si existe
+            const oldSelect = productoTemplate.querySelector('.producto-select');
+            if ($(oldSelect).data('select2')) {
+                $(oldSelect).select2('destroy');
+            }
             
             // Actualizar nombres de campos
             productoTemplate.querySelectorAll('select, input').forEach(input => {
@@ -248,11 +263,19 @@
             productoTemplate.querySelector('.remove-producto').disabled = false;
             
             productosContainer.appendChild(productoTemplate);
+
+            // Inicializar Select2 en el nuevo select
+            initializeSelect2(productoTemplate.querySelector('.producto-select'));
+            
             productoCount++;
 
             // Agregar evento para eliminar producto
             productoTemplate.querySelector('.remove-producto').addEventListener('click', function() {
-                productoTemplate.remove();
+                const select = this.closest('.producto-item').querySelector('.producto-select');
+                if ($(select).data('select2')) {
+                    $(select).select2('destroy');
+                }
+                this.closest('.producto-item').remove();
             });
         });
 
@@ -260,7 +283,11 @@
         document.querySelectorAll('.remove-producto').forEach(button => {
             if (!button.disabled) {
                 button.addEventListener('click', function() {
-                    button.closest('.producto-item').remove();
+                    const select = this.closest('.producto-item').querySelector('.producto-select');
+                    if ($(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
+                    this.closest('.producto-item').remove();
                 });
             }
         });
