@@ -22,7 +22,10 @@
                            class="btn btn-primary btn-lg">
                             <i class="fas fa-plus me-2"></i>Nueva Transferencia
                         </a>
-                        
+                        <a href="{{ route('transferencias.index') }}" 
+                           class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-list me-2"></i>Ver Transferencias
+                        </a>
                         <a href="{{ route('transferencias.reporte') }}" 
                            class="btn btn-outline-info btn-lg">
                             <i class="fas fa-chart-bar me-2"></i>Reporte
@@ -44,7 +47,10 @@
                            class="btn btn-success btn-lg">
                             <i class="fas fa-list-alt me-2"></i>Ver Pedidos
                         </a>
-                        
+                        <a href="{{ route('pedidos.reporte') }}" 
+                           class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Reporte de Pedidos
+                        </a>
                     </div>
                 </div>
             </div>
