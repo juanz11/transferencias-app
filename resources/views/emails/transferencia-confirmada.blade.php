@@ -1,4 +1,4 @@
-@component('mail::message')
+@component('mail::message', ['appName' => $appName])
 
 <h1>CONFIRMACIÓN TRANSFERENCIA Nº <span style="color: red">{{$transferencia->transferencia->transferencia_numero}}</span></h1>
 
@@ -34,5 +34,5 @@
 <br><br>
 Recuerde que esta es información de su ganancia real por la transferencia procesada, <b>NO OBSTANTE, TODOS LOS DATOS AQUÍ SUMINISTRADOS ESTARÁN SUJETOS A REVISIÓN.</b><br><br>
 Atentamente,<br>
-{{ config('app.name') }}
+{{ $appName }}
 @endcomponent
