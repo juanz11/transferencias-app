@@ -35,7 +35,6 @@ class TransferenciaConfirmada extends Mailable
     {
         $appName = str_replace('_', ' ', config('app.name'));
         return $this->markdown('emails.transferencia-confirmada')
-                    ->subject($appName . ' - Confirmación #' . $this->transferencia->transferencia->transferencia_numero)
-                    ->with(['appName' => $appName]);
+                    ->subject($appName . ' - Confirmación #' . $this->transferencia->transferencia->transferencia_numero);
     }
 }

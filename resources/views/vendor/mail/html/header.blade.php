@@ -1,7 +1,7 @@
 <tr>
 <td class="header">
-<a href="{{ $url }}" style="display: inline-block;">
-{{ $appName ?? config('app.name') }}
-</a>
+<span style="display: inline-block; font-size: 19px; font-weight: bold; color: #3d4852;">
+{{ str_replace('_', ' ', config('app.name')) }}
+</span>
 </td>
 </tr>
