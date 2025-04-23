@@ -107,7 +107,8 @@
                             <label for="fecha_correo" class="form-label">Fecha de Correo</label>
                             <input type="date" name="fecha_correo" id="fecha_correo" 
                                 class="form-control @error('fecha_correo') is-invalid @enderror" 
-                                value="{{ old('fecha_correo') }}" required>
+                                value="{{ old('fecha_correo') }}" required
+                                max="{{ date('Y-m-d') }}">
                             @error('fecha_correo')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -117,7 +118,8 @@
                             <label for="fecha_transferencia" class="form-label">Fecha de Transferencia</label>
                             <input type="date" name="fecha_transferencia" id="fecha_transferencia" 
                                 class="form-control @error('fecha_transferencia') is-invalid @enderror" 
-                                value="{{ old('fecha_transferencia') }}" required>
+                                value="{{ old('fecha_transferencia') }}" required
+                                max="{{ date('Y-m-d') }}">
                             @error('fecha_transferencia')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
