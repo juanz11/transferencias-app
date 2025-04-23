@@ -8,7 +8,7 @@
 <hr>
 <h1>Datos de la transferencia</h1>
 @component('mail::table')
-| Fecha de notificación: | Fecha de Confirmación:              |
+| <span style="color: black; font-weight: bold;">Fecha de notificación:</span> | <span style="color: black; font-weight: bold;">Fecha de Confirmación:</span>              |
 | -------------          |:-------------:      |
 | {{ date('d-m-Y', strtotime($transferencia->transferencia->fecha_transferencia)) }} | {{ date('d-m-Y', strtotime($transferencia->created_at)) }} |
 @endcomponent
@@ -16,7 +16,7 @@
 <hr>
 <h1>Datos del Cliente</h1>
 @component('mail::table')
-| Cliente                | Código              | Droguería         |
+| <span style="color: black; font-weight: bold;">Cliente</span>                | <span style="color: black; font-weight: bold;">Código</span>              | <span style="color: black; font-weight: bold;">Droguería</span>         |
 | -------------          |:-------------:      |:-------------:    |
 | {{$transferencia->transferencia->cliente->nombre_cliente}} | {{$transferencia->transferencia->cliente->codigo_cliente}} | {{$drogueria->nombre}} |
 @endcomponent
@@ -24,7 +24,7 @@
 <hr>
 <h1>Productos</h1>
 @component('mail::table')
-| Producto                | Cantidad               | Comisión               | Total                |
+| <span style="color: black; font-weight: bold;">Producto</span>                | <span style="color: black; font-weight: bold;">Cantidad</span>               | <span style="color: black; font-weight: bold;">Comisión</span>               | <span style="color: black; font-weight: bold;">Total</span>                |
 | -------------           |:-------------:         |:-------------:         | -------------------: |
 @foreach ($calculos as $calculo)
 |{{$calculo->productos->nombre}} | {{$calculo->cantidad}} | ${{$calculo->comision}} | ${{round($calculo->total, 2)}} |
