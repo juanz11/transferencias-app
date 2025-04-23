@@ -224,6 +224,23 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Validación de fechas
+        const fechaCorreo = document.getElementById('fecha_correo');
+        const fechaTransferencia = document.getElementById('fecha_transferencia');
+
+        function validarFechas() {
+            if (fechaCorreo.value && fechaTransferencia.value) {
+                if (fechaTransferencia.value > fechaCorreo.value) {
+                    fechaTransferencia.setCustomValidity('La fecha de transferencia no puede ser posterior a la fecha de correo');
+                } else {
+                    fechaTransferencia.setCustomValidity('');
+                }
+            }
+        }
+
+        fechaCorreo.addEventListener('change', validarFechas);
+        fechaTransferencia.addEventListener('change', validarFechas);
+
         // Función para inicializar Select2 en un elemento
         function initializeSelect2(element) {
             $(element).select2({
