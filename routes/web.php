@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
     // Rutas de transferencias
     Route::get('/transferencias', [TransferenciaController::class, 'index'])->name('transferencias.index');
     Route::get('/transferencias/reporte', [TransferenciaController::class, 'reporteTransferencias'])->name('transferencias.reporte');
+    Route::get('/transferencias/confirmados', [TransferenciaController::class, 'listarConfirmados'])->name('transferencias.confirmados');
 
     // Rutas de pedidos
     Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');

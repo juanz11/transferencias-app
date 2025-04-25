@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TransferenciaConfirmada;
+use App\Models\Producto;
 
 class Pedido extends Model
 {
@@ -23,5 +25,10 @@ class Pedido extends Model
     public function producto()
     {
         return $this->belongsTo(Producto::class);
+    }
+
+    public function transferenciaConfirmada()
+    {
+        return $this->belongsTo(TransferenciaConfirmada::class);
     }
 }
