@@ -45,7 +45,7 @@ class TransferenciaPedidoController extends Controller
         try {
             $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
             $visitador = Visitador::findOrFail($request->visitador_id);
-            $drogueria = Drogeria::first();
+            $drogueria = Drogeria::findOrFail($cliente->drogueria);
 
             // Crear la transferencia
             $transferencia = new Transferencia([
