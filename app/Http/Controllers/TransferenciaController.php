@@ -5,34 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
 use App\Models\Visitador;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class TransferenciaController extends Controller
 {
     public function index()
     {
-        $visitadores = Visitador::all();
-        return view('transferencias.index', compact('visitadores'));
-    }
+        $query = Transferencia::with('visitador')
+            ->where('confirmada', false);
 
-    public function reporteTransferencias(Request $request)
-    {
-        $query = Transferencia::with('visitador');
-
-        if ($request->fecha_inicio && $request->fecha_fin) {
-            $query->whereBetween('fecha_transferencia', [
-                $request->fecha_inicio,
-                $request->fecha_fin
-            ]);
-        }
-
-        if ($request->visitador_id) {
-            $query->where('visitador_id', $request->visitador_id);
-        }
-
-        if ($request->has('confirmada') && $request->confirmada !== '') {
-            $query->where('confirmada', $request->confirmada);
+        // Filtrar por fecha específica
+        if (request()->fecha) {
+            $fecha = Carbon::createFromFormat('Y-m-d', request()->fecha);
+            $query->whereDate('created_at', $fecha);
         }
 
         $transferencias = $query->get();
@@ -42,6 +28,9 @@ class TransferenciaController extends Controller
 
     public function listarConfirmados(Request $request)
     {
+        // Obtener lista de visitadores para el selector
+        $visitadores = Visitador::orderBy('nombre')->get();
+
         $query = TransferenciaConfirmada::with(['transferencia.visitador', 'pedidosConfirmados.producto'])
             ->whereHas('transferencia', function($q) {
                 $q->where('confirmada', true);
@@ -51,28 +40,34 @@ class TransferenciaController extends Controller
         if ($request->fecha) {
             $fecha = Carbon::createFromFormat('Y-m-d', $request->fecha);
             $query->whereHas('transferencia', function($q) use ($fecha) {
-                $q->whereDate('fecha_transferencia', $fecha);
+                $q->whereDate('created_at', $fecha);
             });
         }
 
-        $transferencias = $query->get()
-            ->map(function ($confirmacion) {
-                $transferencia = $confirmacion->transferencia;
-                return [
-                    'fecha_transferencia' => $transferencia->fecha_transferencia,
-                    'fecha_confirmacion' => $confirmacion->created_at,
-                    'visitador' => $transferencia->visitador ? $transferencia->visitador->nombre : 'Sin Visitador',
-                    'transferencia_numero' => $transferencia->transferencia_numero,
-                    'pedidos' => $confirmacion->pedidosConfirmados->map(function($pedido) {
-                        return [
-                            'producto' => $pedido->producto ? $pedido->producto->nombre : 'Producto no encontrado',
-                            'cantidad' => $pedido->cantidad,
-                            'descuento' => $pedido->descuento
-                        ];
-                    })
-                ];
+        // Filtrar por visitador
+        if ($request->visitador_id) {
+            $query->whereHas('transferencia', function($q) use ($request) {
+                $q->where('visitador_id', $request->visitador_id);
             });
+        }
 
-        return view('transferencias.confirmados', compact('transferencias'));
+        $transferencias = $query->get()->map(function($confirmacion) {
+            $transferencia = $confirmacion->transferencia;
+            return [
+                'fecha_transferencia' => Carbon::parse($transferencia->created_at),
+                'fecha_confirmacion' => Carbon::parse($confirmacion->created_at),
+                'visitador' => $transferencia->visitador ? $transferencia->visitador->nombre : 'Sin Visitador',
+                'transferencia_numero' => $transferencia->transferencia_numero,
+                'pedidos' => $confirmacion->pedidosConfirmados->map(function($pedido) {
+                    return [
+                        'producto' => $pedido->producto ? $pedido->producto->nombre : 'Producto no encontrado',
+                        'cantidad' => $pedido->cantidad,
+                        'descuento' => $pedido->descuento
+                    ];
+                })
+            ];
+        });
+
+        return view('transferencias.confirmados', compact('transferencias', 'visitadores'));
     }
 }

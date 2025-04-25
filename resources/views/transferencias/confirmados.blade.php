@@ -39,6 +39,19 @@
                                    required>
                         </div>
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="visitador_id">Visitador:</label>
+                            <select name="visitador_id" id="visitador_id" class="form-control">
+                                <option value="">Todos los visitadores</option>
+                                @foreach($visitadores as $visitador)
+                                    <option value="{{ $visitador->id }}" {{ request('visitador_id') == $visitador->id ? 'selected' : '' }}>
+                                        {{ $visitador->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">
