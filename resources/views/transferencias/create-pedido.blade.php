@@ -103,16 +103,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label for="fecha_correo" class="form-label">Fecha de Correo</label>
-                            <input type="date" name="fecha_correo" id="fecha_correo" 
-                                class="form-control @error('fecha_correo') is-invalid @enderror" 
-                                value="{{ old('fecha_correo') }}" required
-                                max="{{ date('Y-m-d') }}">
-                            @error('fecha_correo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                      
                         
                         <div class="col-md-4">
                             <label for="fecha_transferencia" class="form-label">Fecha de Transferencia</label>
@@ -121,6 +112,17 @@
                                 value="{{ old('fecha_transferencia') }}" required
                                 max="{{ date('Y-m-d') }}">
                             @error('fecha_transferencia')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                          <div class="col-md-4">
+                            <label for="fecha_correo" class="form-label">Fecha de Correo</label>
+                            <input type="date" name="fecha_correo" id="fecha_correo" 
+                                class="form-control @error('fecha_correo') is-invalid @enderror" 
+                            value="{{ old('fecha_correo') }}" required
+                                max="{{ date('Y-m-d') }}">
+                            @error('fecha_correo')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -194,11 +196,12 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
-                                            <input type="number" name="productos[0][cantidad]" class="form-control" placeholder="Cantidad" required min="1">
-                                        </div>
+                                        
                                         <div class="col-md-3">
                                             <input type="number" name="productos[0][descuento]" class="form-control" placeholder="Descuento" step="0.01" min="0">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="number" name="productos[0][cantidad]" class="form-control" placeholder="Cantidad" required min="1">
                                         </div>
                                         <div class="col-md-1">
                                             <button type="button" class="btn btn-danger btn-sm remove-producto" disabled>X</button>
@@ -224,8 +227,8 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Validación de fechas
-        const fechaCorreo = document.getElementById('fecha_correo');
+        // Función para inicializar Select2 en un elemento
+             const fechaCorreo = document.getElementById('fecha_correo');
         const fechaTransferencia = document.getElementById('fecha_transferencia');
 
         function validarFechas() {
@@ -241,7 +244,6 @@
         fechaCorreo.addEventListener('change', validarFechas);
         fechaTransferencia.addEventListener('change', validarFechas);
 
-        // Función para inicializar Select2 en un elemento
         function initializeSelect2(element) {
             $(element).select2({
                 theme: 'bootstrap-5',
