@@ -27,10 +27,8 @@ class PedidoController extends Controller
 
         if ($request->fecha_inicio && $request->fecha_fin) {
             $query->whereHas('transferenciaConfirmada', function($q) use ($request) {
-                $q->whereBetween('created_at', [
-                    $request->fecha_inicio,
-                    $request->fecha_fin
-                ]);
+                $q->whereDate('created_at', '>=', $request->fecha_inicio)
+                  ->whereDate('created_at', '<=', $request->fecha_fin);
             });
         }
 
