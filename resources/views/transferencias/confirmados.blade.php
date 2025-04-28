@@ -72,6 +72,7 @@
                                 <th>Visitador</th>
                                 <th>N° Transferencia</th>
                                 <th>Pedidos</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,6 +92,12 @@
                                                 @endif
                                             </div>
                                         @endforeach
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('transferencias.confirmados.edit', $transferencia['id']) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach

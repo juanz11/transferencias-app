@@ -76,6 +76,7 @@ class TransferenciaController extends Controller
             $transferencia = $primerPedido->transferenciaConfirmada->transferencia;
             
             $transferencias->push([
+                'id' => $primerPedido->transferenciaConfirmada->id,
                 'fecha_transferencia' => $transferencia->fecha_transferencia,
                 'fecha_confirmacion' => $primerPedido->transferenciaConfirmada->created_at,
                 'visitador' => $transferencia->visitador ? $transferencia->visitador->nombre : 'Sin Visitador',
@@ -91,5 +92,40 @@ class TransferenciaController extends Controller
         }
 
         return view('transferencias.confirmados', compact('transferencias', 'visitadores'));
+    }
+
+    public function editarConfirmada($id)
+    {
+        $transferenciaConfirmada = TransferenciaConfirmada::with([
+            'transferencia.visitador',
+            'pedidosConfirmados.producto'
+        ])->findOrFail($id);
+
+        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada'));
+    }
+
+    public function actualizarConfirmada(Request $request, $id)
+    {
+        $transferenciaConfirmada = TransferenciaConfirmada::findOrFail($id);
+        
+        // Validar los datos
+        $request->validate([
+            'pedidos.*.cantidad' => 'required|integer|min:1',
+            'pedidos.*.descuento' => 'required|integer|min:0|max:100',
+        ]);
+
+        // Actualizar los pedidos
+        foreach ($request->pedidos as $pedidoData) {
+            $pedido = PedidoConfirmado::find($pedidoData['id']);
+            if ($pedido && $pedido->transferencia_confirmada_id == $id) {
+                $pedido->update([
+                    'cantidad' => $pedidoData['cantidad'],
+                    'descuento' => $pedidoData['descuento'],
+                ]);
+            }
+        }
+
+        return redirect()->route('transferencias.confirmados')
+            ->with('success', 'Transferencia actualizada correctamente');
     }
 }
