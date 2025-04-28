@@ -101,17 +101,29 @@ class TransferenciaController extends Controller
             'pedidosConfirmados.producto'
         ])->findOrFail($id);
 
-        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada'));
+        $visitadores = Visitador::orderBy('nombre')->get();
+
+        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada', 'visitadores'));
     }
 
     public function actualizarConfirmada(Request $request, $id)
     {
-        $transferenciaConfirmada = TransferenciaConfirmada::findOrFail($id);
+        $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
         
         // Validar los datos
         $request->validate([
+            'fecha_transferencia' => 'required|date',
+            'transferencia_numero' => 'required|string|max:40',
+            'visitador_id' => 'required|exists:visitadores,id',
             'pedidos.*.cantidad' => 'required|integer|min:1',
             'pedidos.*.descuento' => 'required|integer|min:0|max:100',
+        ]);
+
+        // Actualizar la transferencia principal
+        $transferenciaConfirmada->transferencia->update([
+            'fecha_transferencia' => $request->fecha_transferencia,
+            'transferencia_numero' => $request->transferencia_numero,
+            'visitador_id' => $request->visitador_id,
         ]);
 
         // Actualizar los pedidos

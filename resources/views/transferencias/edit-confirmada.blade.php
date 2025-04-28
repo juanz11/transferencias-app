@@ -43,6 +43,58 @@
                 @csrf
                 @method('PUT')
                 
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="fecha_transferencia">Fecha Transferencia:</label>
+                            <input type="date" 
+                                   name="fecha_transferencia" 
+                                   id="fecha_transferencia" 
+                                   class="form-control @error('fecha_transferencia') is-invalid @enderror"
+                                   value="{{ old('fecha_transferencia', $transferenciaConfirmada->transferencia->fecha_transferencia->format('Y-m-d')) }}"
+                                   required>
+                            @error('fecha_transferencia')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="transferencia_numero">N° Transferencia:</label>
+                            <input type="text" 
+                                   name="transferencia_numero" 
+                                   id="transferencia_numero" 
+                                   class="form-control @error('transferencia_numero') is-invalid @enderror"
+                                   value="{{ old('transferencia_numero', $transferenciaConfirmada->transferencia->transferencia_numero) }}"
+                                   maxlength="40"
+                                   required>
+                            @error('transferencia_numero')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="visitador_id">Visitador:</label>
+                            <select name="visitador_id" 
+                                    id="visitador_id" 
+                                    class="form-control @error('visitador_id') is-invalid @enderror"
+                                    required>
+                                @foreach($visitadores as $visitador)
+                                    <option value="{{ $visitador->id }}" 
+                                        {{ old('visitador_id', $transferenciaConfirmada->transferencia->visitador_id) == $visitador->id ? 'selected' : '' }}>
+                                        {{ $visitador->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('visitador_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="mb-3">Pedidos</h4>
                 <div class="row">
                     @foreach($transferenciaConfirmada->pedidosConfirmados as $pedido)
                         <div class="col-md-6">
