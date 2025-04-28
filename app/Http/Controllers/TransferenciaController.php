@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
+use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -31,42 +32,63 @@ class TransferenciaController extends Controller
         // Obtener lista de visitadores para el selector
         $visitadores = Visitador::orderBy('nombre')->get();
 
-        $query = TransferenciaConfirmada::with(['transferencia.visitador', 'pedidosConfirmados.producto'])
-            ->whereHas('transferencia', function($q) {
-                $q->where('confirmada', true);
-            });
+        $query = PedidoConfirmado::with([
+            'transferenciaConfirmada.transferencia.visitador',
+            'producto'
+        ]);
 
-        // Filtrar por fecha específica
+        // Filtrar por fecha específica (fecha de confirmación)
         if ($request->fecha) {
             $fecha = Carbon::createFromFormat('Y-m-d', $request->fecha);
-            $query->whereHas('transferencia', function($q) use ($fecha) {
+            $query->whereHas('transferenciaConfirmada', function($q) use ($fecha) {
                 $q->whereDate('created_at', $fecha);
             });
         }
 
         // Filtrar por visitador
         if ($request->visitador_id) {
-            $query->whereHas('transferencia', function($q) use ($request) {
+            $query->whereHas('transferenciaConfirmada.transferencia', function($q) use ($request) {
                 $q->where('visitador_id', $request->visitador_id);
             });
         }
 
-        $transferencias = $query->get()->map(function($confirmacion) {
-            $transferencia = $confirmacion->transferencia;
-            return [
-                'fecha_transferencia' => Carbon::parse($transferencia->created_at),
-                'fecha_confirmacion' => Carbon::parse($confirmacion->created_at),
+        // Agrupar pedidos por transferencia
+        $pedidos = $query->get();
+        
+        // Debug: Verificar si hay pedidos
+        \Log::info('Número de pedidos encontrados: ' . $pedidos->count());
+        
+        $transferencias = collect();
+
+        foreach ($pedidos->groupBy('transferenciaConfirmada.id') as $confirmacionId => $pedidosGroup) {
+            $primerPedido = $pedidosGroup->first();
+            
+            // Debug: Verificar el primer pedido y sus relaciones
+            \Log::info('Confirmación ID: ' . $confirmacionId);
+            \Log::info('Primer pedido existe: ' . ($primerPedido ? 'Sí' : 'No'));
+            \Log::info('TransferenciaConfirmada existe: ' . ($primerPedido->transferenciaConfirmada ? 'Sí' : 'No'));
+            
+            if (!$primerPedido || !$primerPedido->transferenciaConfirmada || !$primerPedido->transferenciaConfirmada->transferencia) {
+                \Log::error('Datos faltantes para confirmación ID: ' . $confirmacionId);
+                continue;
+            }
+            
+            $transferencia = $primerPedido->transferenciaConfirmada->transferencia;
+            
+            $transferencias->push([
+                'fecha_transferencia' => $transferencia->fecha_transferencia,
+                'fecha_confirmacion' => $primerPedido->transferenciaConfirmada->created_at,
                 'visitador' => $transferencia->visitador ? $transferencia->visitador->nombre : 'Sin Visitador',
                 'transferencia_numero' => $transferencia->transferencia_numero,
-                'pedidos' => $confirmacion->pedidosConfirmados->map(function($pedido) {
+                'pedidos' => $pedidosGroup->map(function($pedido) {
                     return [
                         'producto' => $pedido->producto ? $pedido->producto->nombre : 'Producto no encontrado',
                         'cantidad' => $pedido->cantidad,
                         'descuento' => $pedido->descuento
                     ];
                 })
-            ];
-        });
+            ]);
+        }
 
         return view('transferencias.confirmados', compact('transferencias', 'visitadores'));
     }
