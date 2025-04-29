@@ -6,6 +6,7 @@ use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
 use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
+use App\Models\Producto;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -100,44 +101,44 @@ class TransferenciaController extends Controller
             'transferencia.visitador',
             'pedidosConfirmados.producto'
         ])->findOrFail($id);
-
-        $visitadores = Visitador::orderBy('nombre')->get();
-
-        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada', 'visitadores'));
+        
+        $productos = Producto::orderBy('nombre')->get();
+        
+        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada', 'productos'));
     }
 
     public function actualizarConfirmada(Request $request, $id)
     {
-        $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
-        
-        // Validar los datos
         $request->validate([
             'fecha_transferencia' => 'required|date',
-            'transferencia_numero' => 'required|string|max:40',
-            'visitador_id' => 'required|exists:visitadores,id',
-            'pedidos.*.cantidad' => 'required|integer|min:1',
-            'pedidos.*.descuento' => 'required|integer|min:0|max:100',
+            'productos' => 'required|array|min:1',
+            'productos.*' => 'required|exists:productos,id',
+            'cantidades' => 'required|array|min:1',
+            'cantidades.*' => 'required|integer|min:1',
+            'descuentos' => 'required|array|min:1',
+            'descuentos.*' => 'required|integer|min:0|max:100',
         ]);
 
-        // Actualizar la transferencia principal
-        $transferenciaConfirmada->transferencia->update([
-            'fecha_transferencia' => $request->fecha_transferencia,
-            'transferencia_numero' => $request->transferencia_numero,
-            'visitador_id' => $request->visitador_id,
-        ]);
+        $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
+        
+        // Actualizar la fecha en la transferencia
+        $transferenciaConfirmada->transferencia->fecha_transferencia = $request->fecha_transferencia;
+        $transferenciaConfirmada->transferencia->save();
 
-        // Actualizar los pedidos
-        foreach ($request->pedidos as $pedidoData) {
-            $pedido = PedidoConfirmado::find($pedidoData['id']);
-            if ($pedido && $pedido->transferencia_confirmada_id == $id) {
-                $pedido->update([
-                    'cantidad' => $pedidoData['cantidad'],
-                    'descuento' => $pedidoData['descuento'],
-                ]);
-            }
+        // Eliminar todos los pedidos confirmados existentes
+        $transferenciaConfirmada->pedidosConfirmados()->delete();
+
+        // Crear los nuevos pedidos confirmados
+        foreach ($request->productos as $index => $productoId) {
+            PedidoConfirmado::create([
+                'transferencia_confirmada_id' => $transferenciaConfirmada->id,
+                'producto_id' => $productoId,
+                'cantidad' => $request->cantidades[$index],
+                'descuento' => $request->descuentos[$index],
+            ]);
         }
 
         return redirect()->route('transferencias.confirmados')
-            ->with('success', 'Transferencia actualizada correctamente');
+            ->with('success', 'Transferencia confirmada actualizada exitosamente');
     }
 }

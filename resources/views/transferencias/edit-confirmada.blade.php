@@ -14,6 +14,12 @@
         color: #2c3e50;
         margin-bottom: 10px;
     }
+    .producto-row {
+        transition: all 0.3s ease;
+    }
+    .producto-row:hover {
+        background-color: #f0f2f5;
+    }
 </style>
 @endsection
 
@@ -39,7 +45,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('transferencias.confirmados.update', $transferenciaConfirmada->id) }}" method="POST">
+            <form id="editForm" action="{{ route('transferencias.confirmados.update', $transferenciaConfirmada->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
@@ -49,104 +55,135 @@
                             <label for="fecha_transferencia">Fecha Transferencia:</label>
                             <input type="date" 
                                    name="fecha_transferencia" 
-                                   id="fecha_transferencia" 
                                    class="form-control @error('fecha_transferencia') is-invalid @enderror"
-                                   value="{{ old('fecha_transferencia', $transferenciaConfirmada->transferencia->fecha_transferencia->format('Y-m-d')) }}"
+                                   value="{{ old('fecha_transferencia', $transferenciaConfirmada->fecha_transferencia ? $transferenciaConfirmada->fecha_transferencia->format('Y-m-d') : $transferenciaConfirmada->transferencia->fecha_transferencia->format('Y-m-d')) }}"
                                    required>
                             @error('fecha_transferencia')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="transferencia_numero">N° Transferencia:</label>
-                            <input type="text" 
-                                   name="transferencia_numero" 
-                                   id="transferencia_numero" 
-                                   class="form-control @error('transferencia_numero') is-invalid @enderror"
-                                   value="{{ old('transferencia_numero', $transferenciaConfirmada->transferencia->transferencia_numero) }}"
-                                   maxlength="40"
-                                   required>
-                            @error('transferencia_numero')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="visitador_id">Visitador:</label>
-                            <select name="visitador_id" 
-                                    id="visitador_id" 
-                                    class="form-control @error('visitador_id') is-invalid @enderror"
-                                    required>
-                                @foreach($visitadores as $visitador)
-                                    <option value="{{ $visitador->id }}" 
-                                        {{ old('visitador_id', $transferenciaConfirmada->transferencia->visitador_id) == $visitador->id ? 'selected' : '' }}>
-                                        {{ $visitador->nombre }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('visitador_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
                 </div>
 
-                <h4 class="mb-3">Pedidos</h4>
-                <div class="row">
-                    @foreach($transferenciaConfirmada->pedidosConfirmados as $pedido)
-                        <div class="col-md-6">
-                            <div class="pedido-card">
-                                <div class="producto-nombre">
-                                    {{ $pedido->producto->nombre }}
-                                </div>
-                                <input type="hidden" name="pedidos[{{ $loop->index }}][id]" value="{{ $pedido->id }}">
-                                
-                                <div class="form-group">
-                                    <label>Cantidad:</label>
-                                    <input type="number" 
-                                           name="pedidos[{{ $loop->index }}][cantidad]" 
-                                           class="form-control @error('pedidos.' . $loop->index . '.cantidad') is-invalid @enderror" 
-                                           value="{{ old('pedidos.' . $loop->index . '.cantidad', $pedido->cantidad) }}"
-                                           min="1"
-                                           required>
-                                    @error('pedidos.' . $loop->index . '.cantidad')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Descuento (%):</label>
-                                    <input type="number" 
-                                           name="pedidos[{{ $loop->index }}][descuento]" 
-                                           class="form-control @error('pedidos.' . $loop->index . '.descuento') is-invalid @enderror" 
-                                           value="{{ old('pedidos.' . $loop->index . '.descuento', $pedido->descuento) }}"
-                                           min="0"
-                                           max="100"
-                                           required>
-                                    @error('pedidos.' . $loop->index . '.descuento')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <a href="{{ route('transferencias.confirmados') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar Cambios
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Productos</h4>
+                        <button type="button" class="btn btn-secondary" id="agregar-producto">
+                            <i class="fas fa-plus"></i> Agregar Producto
                         </button>
                     </div>
+                    <div class="card-body">
+                        <div id="productos-container">
+                            @foreach($transferenciaConfirmada->pedidosConfirmados as $pedido)
+                                <div class="producto-row border p-3 mb-3 rounded">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Seleccione un producto</label>
+                                            <select class="form-select producto-select" name="productos[]" required>
+                                                <option value="">Seleccione un producto</option>
+                                                @foreach($productos as $producto)
+                                                    <option value="{{ $producto->id }}" {{ $pedido->producto_id == $producto->id ? 'selected' : '' }}>
+                                                        {{ $producto->nombre }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Cantidad</label>
+                                            <input type="number" class="form-control" name="cantidades[]" min="1" value="{{ $pedido->cantidad }}" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Descuento</label>
+                                            <input type="number" class="form-control" name="descuentos[]" min="0" max="100" value="{{ $pedido->descuento }}">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger eliminar-producto">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <a href="{{ route('transferencias.confirmados') }}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endsection
+
+<!-- Template para nuevas filas de producto -->
+<template id="producto-template">
+    <div class="producto-row border p-3 mb-3 rounded">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Seleccione un producto</label>
+                <select class="form-select producto-select" name="productos[]" required>
+                    <option value="">Seleccione un producto</option>
+                    @foreach($productos as $producto)
+                        <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Cantidad</label>
+                <input type="number" class="form-control" name="cantidades[]" min="1" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Descuento</label>
+                <input type="number" class="form-control" name="descuentos[]" min="0" max="100" value="0">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-danger eliminar-producto">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('productos-container');
+    const template = document.getElementById('producto-template');
+    const btnAgregar = document.getElementById('agregar-producto');
+
+    // Función para agregar una nueva fila de producto
+    function agregarProducto() {
+        const clone = template.content.cloneNode(true);
+        container.appendChild(clone);
+
+        // Agregar evento para eliminar producto
+        const btnEliminar = container.lastElementChild.querySelector('.eliminar-producto');
+        btnEliminar.addEventListener('click', function() {
+            this.closest('.producto-row').remove();
+        });
+    }
+
+    // Agregar eventos para eliminar productos existentes
+    document.querySelectorAll('.eliminar-producto').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.producto-row').remove();
+        });
+    });
+
+    // Evento para agregar más productos
+    btnAgregar.addEventListener('click', agregarProducto);
+
+    // Validar el formulario antes de enviar
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        const productos = container.querySelectorAll('.producto-row');
+        if (productos.length === 0) {
+            e.preventDefault();
+            alert('Debe tener al menos un producto');
+        }
+    });
+});
+</script>
+@endpush
