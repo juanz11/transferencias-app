@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row justify-content-center mb-5">
         <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">Sistema de Transferencias y Pedidos</h1>
+            <img src="{{ asset('logo/login-bg.png') }}" alt="Logo" class="img-fluid mb-4" style="max-height: 150px;">
             <p class="lead text-muted">Gestione sus transferencias y pedidos de manera eficiente</p>
         </div>
     </div>
