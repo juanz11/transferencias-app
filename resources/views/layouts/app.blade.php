@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ url('/') }}">{{ config('app.name', 'Laravel') }}</a>
+            <a class="navbar-brand" href="{{ url('/') }}"><img src="{{ asset('logo/logo-white-250.png') }}" alt="Logo" style="height: 39px; width: auto;"></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -19,6 +19,9 @@
                     @auth
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('transferencias.index') }}">Transferencias</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/transferencias/confirmados">Editar Transferencia</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('pedidos.index') }}">Pedidos</a>
