@@ -5,6 +5,7 @@ use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TransferenciaPedidoController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\VisitadorController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -31,4 +32,9 @@ Route::middleware('auth')->group(function () {
     // Rutas para crear pedidos y transferencias confirmadas
     Route::get('/transferencias/pedidos/create', [TransferenciaPedidoController::class, 'create'])->name('transferencias.pedidos.create');
     Route::post('/transferencias/pedidos', [TransferenciaPedidoController::class, 'store'])->name('transferencias.pedidos.store');
+
+    // Rutas para visitadores
+    Route::resource('visitadores', VisitadorController::class)->parameters([
+        'visitadores' => 'visitador'
+    ]);
 });
