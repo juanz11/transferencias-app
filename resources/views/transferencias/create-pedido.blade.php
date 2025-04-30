@@ -214,9 +214,64 @@
                     </div>
 
                     <div class="text-end">
-                        <button type="submit" class="btn btn-primary">Guardar Pedido</button>
+                        <button type="button" class="btn btn-primary" id="confirmarPedido">Confirmar</button>
                     </div>
                 </form>
+
+                <!-- Modal de Confirmación -->
+                <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmacionModalLabel">Confirmar Pedido</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Visitador:</strong>
+                                        <p id="modal-visitador"></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Cliente:</strong>
+                                        <p id="modal-cliente"></p>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <strong>Fecha de Transferencia:</strong>
+                                        <p id="modal-fecha-transferencia"></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Fecha de Correo:</strong>
+                                        <p id="modal-fecha-correo"></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Número de Transferencia:</strong>
+                                        <p id="modal-transferencia-numero"></p>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Cantidad</th>
+                                                <th>Descuento</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modal-productos">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="confirmarFinal">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -339,6 +394,46 @@
                     this.closest('.producto-item').remove();
                 });
             }
+        });
+
+        // Evento para mostrar el modal de confirmación
+        $('#confirmarPedido').click(function() {
+            // Validar el formulario antes de mostrar el modal
+            if (!document.getElementById('pedidoForm').checkValidity()) {
+                document.getElementById('pedidoForm').reportValidity();
+                return;
+            }
+
+            // Llenar la información del modal
+            $('#modal-visitador').text($('#visitador_id option:selected').text());
+            $('#modal-cliente').text($('#cliente_id option:selected').text());
+            $('#modal-fecha-transferencia').text($('#fecha_transferencia').val());
+            $('#modal-fecha-correo').text($('#fecha_correo').val());
+            $('#modal-transferencia-numero').text($('#transferencia_numero').val());
+
+            // Limpiar y llenar la tabla de productos
+            $('#modal-productos').empty();
+            $('.producto-item').each(function() {
+                const productoNombre = $(this).find('.producto-select option:selected').text();
+                const cantidad = $(this).find('input[name$="[cantidad]"]').val();
+                const descuento = $(this).find('input[name$="[descuento]"]').val() || '0';
+
+                $('#modal-productos').append(`
+                    <tr>
+                        <td>${productoNombre}</td>
+                        <td>${cantidad}</td>
+                        <td>${descuento}%</td>
+                    </tr>
+                `);
+            });
+
+            // Mostrar el modal
+            new bootstrap.Modal(document.getElementById('confirmacionModal')).show();
+        });
+
+        // Evento para confirmar y enviar el formulario
+        $('#confirmarFinal').click(function() {
+            document.getElementById('pedidoForm').submit();
         });
     });
 </script>
