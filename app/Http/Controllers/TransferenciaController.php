@@ -101,10 +101,11 @@ class TransferenciaController extends Controller
             'transferencia.visitador',
             'pedidosConfirmados.producto'
         ])->findOrFail($id);
-        
+
+        $visitadores = Visitador::orderBy('nombre')->get();
         $productos = Producto::orderBy('nombre')->get();
-        
-        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada', 'productos'));
+
+        return view('transferencias.edit-confirmada', compact('transferenciaConfirmada', 'visitadores', 'productos'));
     }
 
     public function actualizarConfirmada(Request $request, $id)
