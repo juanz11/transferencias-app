@@ -6,6 +6,7 @@ use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TransferenciaPedidoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\VisitadorController;
+use App\Http\Controllers\ProductoController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -36,5 +37,10 @@ Route::middleware('auth')->group(function () {
     // Rutas para visitadores
     Route::resource('visitadores', VisitadorController::class)->parameters([
         'visitadores' => 'visitador'
+    ]);
+
+    // Rutas para productos
+    Route::resource('productos', ProductoController::class)->parameters([
+        'productos' => 'producto'
     ]);
 });

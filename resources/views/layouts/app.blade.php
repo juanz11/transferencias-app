@@ -31,6 +31,11 @@
                             <a class="nav-link" href="{{ route('transferencias.pedidos.create') }}">Crear Pedido</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
+                                <i class="fas fa-box me-2"></i>Productos
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('visitadores.*') ? 'active' : '' }}" href="{{ route('visitadores.index') }}">
                                 <i class="fas fa-users me-2"></i>Visitadores
                             </a>
