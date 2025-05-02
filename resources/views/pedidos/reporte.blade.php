@@ -9,6 +9,12 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <span>Reporte de Pedidos - {{ $tipoVista === 'agrupado' ? 'Vista Agrupada' : 'Vista Individual' }}</span>
                         <div>
+                            <!-- Hidden inputs for parameters -->
+                            <input type="hidden" id="currentVisitador" value="{{ request()->get('visitador_id') }}">
+                            <input type="hidden" id="currentFechaInicio" value="{{ request()->get('fecha_inicio') }}">
+                            <input type="hidden" id="currentFechaFin" value="{{ request()->get('fecha_fin') }}">
+                            
+                            <button id="enviarEmail" class="btn btn-primary me-2">Enviar por Email</button>
                             <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF</a>
                             <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
                         </div>
@@ -130,3 +136,70 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.getElementById('enviarEmail').addEventListener('click', function() {
+    // Obtener los parámetros de los campos ocultos
+    const visitador = document.getElementById('currentVisitador').value;
+    const fechaInicio = document.getElementById('currentFechaInicio').value;
+    const fechaFin = document.getElementById('currentFechaFin').value;
+
+    console.log('Parámetros a enviar:', {
+        visitador_id: visitador,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin
+    });
+
+    // Verificar si tenemos todos los parámetros necesarios
+    if (!visitador || !fechaInicio || !fechaFin) {
+        alert('Error: No se encontraron todos los parámetros necesarios. Por favor, asegúrese de seleccionar un visitador y un rango de fechas.');
+        console.log('Parámetros encontrados:', {
+            visitador_id: visitador,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        });
+        return;
+    }
+
+    // Mostrar loading
+    const button = document.getElementById('enviarEmail');
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
+
+    fetch('{{ route('pedidos.enviar-reporte') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            visitador: visitador,
+            fecha_inicio: fechaInicio,
+            fecha_fin: fechaFin
+        })
+    })
+    .then(response => response.json().then(data => ({
+        ok: response.ok,
+        status: response.status,
+        data: data
+    })))
+    .then(({ ok, status, data }) => {
+        if (!ok) {
+            throw new Error(`${status}: ${data.message || 'Error desconocido'}`);
+        }
+        alert(data.message);
+    })
+    .catch(error => {
+        console.error('Error completo:', error);
+        alert('Error al enviar el reporte por email: ' + error.message);
+    })
+    .finally(() => {
+        // Restaurar el botón
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+});
+</script>
+@endpush

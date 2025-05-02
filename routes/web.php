@@ -28,7 +28,8 @@ Route::middleware('auth')->group(function () {
 
     // Rutas de pedidos
     Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
-    Route::get('/pedidos/reporte', [PedidoController::class, 'reportePedidos'])->name('pedidos.reporte');
+    Route::get('/pedidos/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
+    Route::post('/pedidos/enviar-reporte', [PedidoController::class, 'enviarReporteEmail'])->name('pedidos.enviar-reporte');
 
     // Rutas para crear pedidos y transferencias confirmadas
     Route::get('/transferencias/pedidos/create', [TransferenciaPedidoController::class, 'create'])->name('transferencias.pedidos.create');

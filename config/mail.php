@@ -27,16 +27,14 @@ return [
     |
     | Laravel supports a variety of mail "transport" drivers that can be used
     | when delivering an email. You may specify which one you're using for
-    | your mailers below. You may also add additional mailers if needed.
+    | your mailers below. You are free to add additional mailers here.
     |
     | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
-    |            "failover", "roundrobin"
+    |            "postmark", "log", "array", "failover"
     |
     */
 
     'mailers' => [
-
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
@@ -94,7 +92,6 @@ return [
                 'postmark',
             ],
         ],
-
     ],
 
     /*
@@ -111,6 +108,41 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'sistematransferencias@sncpharma.com'),
         'name' => str_replace('_', ' ', env('APP_NAME', 'Sistema de Transferencias')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Global "To" Address
+    |--------------------------------------------------------------------------
+    |
+    | You may wish for all e-mails sent by your application to be sent to
+    | the same address. Here, you may specify a name and address that is
+    | used globally for all e-mails that are sent by your application.
+    |
+    */
+
+    'to' => [
+        'address' => env('MAIL_TO_ADDRESS', 'recipient@example.com'),
+        'name' => env('MAIL_TO_NAME', 'Recipient'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Markdown Mail Settings
+    |--------------------------------------------------------------------------
+    |
+    | If you are using Markdown based email rendering, you may configure your
+    | theme and component paths here, allowing you to customize the design
+    | of the emails. Or, you may simply stick with the Laravel defaults!
+    |
+    */
+
+    'markdown' => [
+        'theme' => 'default',
+
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
     ],
 
 ];
