@@ -1,9 +1,67 @@
 @extends('layouts.app')
 
 @section('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 <style>
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 1000;
+        background: white !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .ui-menu-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+        background: white !important;
+    }
+    
+    .ui-menu-item:hover {
+        background-color: #f8f9fa !important;
+        cursor: pointer;
+    }
+    
+    .ui-state-active, 
+    .ui-widget-content .ui-state-active {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+
+    .ui-menu {
+        padding: 0 !important;
+        border: none !important;
+        background: white !important;
+    }
+
+    .ui-widget.ui-widget-content {
+        border: 1px solid #ced4da;
+    }
+
+    .cliente-input {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    
+    .cliente-input:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+    
     .select2-container {
         width: 100% !important;
     }
@@ -19,28 +77,20 @@
     .select2-container--default .select2-selection--single,
     .select2-container--bootstrap-5 .select2-selection {
         border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
     }
-    .select2-dropdown,
-    .select2-container--default .select2-dropdown,
-    .select2-container--bootstrap-5 .select2-dropdown {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
+
+    .select2-dropdown {
         border: 1px solid #ced4da !important;
+        border-radius: 0.375rem !important;
     }
-    .select2-container--default .select2-results__option--highlighted[aria-selected],
-    .select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected] {
+
+    .select2-results__option {
+        padding: 0.375rem 0.75rem !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
         background-color: #0d6efd !important;
-        color: #ffffff !important;
-    }
-    .select2-container--default .select2-results__option[aria-selected=true],
-    .select2-container--bootstrap-5 .select2-results__option[aria-selected=true] {
-        background-color: #e9ecef !important;
-    }
-    .select2-search__field {
-        background-color: #ffffff !important;
-    }
-    .select2-results {
-        background-color: #ffffff !important;
     }
 </style>
 @endsection
@@ -87,15 +137,12 @@
                         </div>
                         
                         <div class="col-md-6">
-                            <label for="cliente_id" class="form-label">Cliente</label>
-                            <select name="codigo_cliente" id="cliente_id" class="form-select @error('codigo_cliente') is-invalid @enderror" required>
-                                <option value="">Seleccione un cliente</option>
-                                @foreach($clientes as $cliente)
-                                    <option value="{{ $cliente->codigo_cliente }}" {{ old('codigo_cliente') == $cliente->codigo_cliente ? 'selected' : '' }}>
-                                        {{ $cliente->nombre_cliente }} - {{ $cliente->codigo_cliente }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="form-label">Cliente</label>
+                            <input type="text" class="form-control cliente-input @error('codigo_cliente') is-invalid @enderror" 
+                                   placeholder="Buscar cliente por nombre o código" 
+                                   required 
+                                   autocomplete="off">
+                            <input type="hidden" name="codigo_cliente" class="codigo-cliente-hidden" value="{{ old('codigo_cliente') }}">
                             @error('codigo_cliente')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -279,11 +326,10 @@
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Función para inicializar Select2 en un elemento
-             const fechaCorreo = document.getElementById('fecha_correo');
+        const fechaCorreo = document.getElementById('fecha_correo');
         const fechaTransferencia = document.getElementById('fecha_transferencia');
 
         function validarFechas() {
@@ -299,43 +345,27 @@
         fechaCorreo.addEventListener('change', validarFechas);
         fechaTransferencia.addEventListener('change', validarFechas);
 
-        function initializeSelect2(element) {
-            $(element).select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Seleccione un producto',
-                allowClear: true,
-                width: '100%'
-            });
-        }
+        const clientes = @json($clientes->map(function($cliente) {
+            return [
+                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
+                'value' => $cliente->codigo_cliente,
+                'nombre' => $cliente->nombre_cliente
+            ];
+        }));
 
-        // Inicializar Select2 para visitadores
-        $('#visitador_id').select2({
-            theme: 'bootstrap-5',
-            placeholder: 'Seleccione un visitador',
-            allowClear: true,
-            width: '100%'
-        });
-
-        // Inicializar Select2 para clientes
-        $('#cliente_id').select2({
-            theme: 'bootstrap-5',
-            placeholder: 'Buscar por nombre o código',
-            allowClear: true,
-            width: '100%',
-            language: {
-                noResults: function() {
-                    return "No se encontraron resultados";
-                },
-                searching: function() {
-                    return "Buscando...";
-                }
+        $('.cliente-input').autocomplete({
+            source: clientes,
+            minLength: 2,
+            select: function(event, ui) {
+                event.preventDefault();
+                $(this).val(ui.item.label);
+                $('.codigo-cliente-hidden').val(ui.item.value);
             }
-        });
-
-        // Inicializar Select2 para los productos existentes
-        $('.producto-select').each(function() {
-            initializeSelect2(this);
-        });
+        }).autocomplete("instance")._renderItem = function(ul, item) {
+            return $("<li>")
+                .append("<div>" + item.nombre + "<br><small class='text-muted'>" + item.value + "</small></div>")
+                .appendTo(ul);
+        };
 
         const productosContainer = document.getElementById('productos-list');
         const addProductoBtn = document.getElementById('add-producto');
@@ -369,7 +399,7 @@
             productosContainer.appendChild(productoTemplate);
 
             // Inicializar Select2 en el nuevo select
-            initializeSelect2(productoTemplate.querySelector('.producto-select'));
+            //initializeSelect2(productoTemplate.querySelector('.producto-select'));
             
             productoCount++;
 
@@ -406,7 +436,7 @@
 
             // Llenar la información del modal
             $('#modal-visitador').text($('#visitador_id option:selected').text());
-            $('#modal-cliente').text($('#cliente_id option:selected').text());
+            $('#modal-cliente').text($('.cliente-input').val());
             $('#modal-fecha-transferencia').text($('#fecha_transferencia').val());
             $('#modal-fecha-correo').text($('#fecha_correo').val());
             $('#modal-transferencia-numero').text($('#transferencia_numero').val());

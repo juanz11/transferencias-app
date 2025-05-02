@@ -287,4 +287,45 @@ class PedidoController extends Controller
             ], 500);
         }
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'visitador_id' => 'required|exists:visitadors,id',
+            'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
+            'fecha_transferencia' => 'required|date',
+            'fecha_correo' => 'required|date',
+            'transferencia_numero' => 'required|string',
+            'productos' => 'required|array|min:1',
+            'productos.*.codigo' => 'required|exists:productos,codigo',
+            'productos.*.cantidad' => 'required|integer|min:1',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $pedido = Pedido::create([
+                'visitador_id' => $request->visitador_id,
+                'codigo_cliente' => $request->codigo_cliente,
+                'fecha_transferencia' => $request->fecha_transferencia,
+                'fecha_correo' => $request->fecha_correo,
+                'transferencia_numero' => $request->transferencia_numero,
+            ]);
+
+            foreach ($request->productos as $producto) {
+                $pedido->productos()->create([
+                    'codigo_producto' => $producto['codigo'],
+                    'cantidad' => $producto['cantidad'],
+                ]);
+            }
+
+            $visitador = Visitador::find($request->visitador_id);
+            Mail::to($visitador->email)->send(new ReporteVisitador($pedido));
+
+            DB::commit();
+            return redirect()->route('pedidos.index')->with('success', 'Pedido creado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Error al crear el pedido: ' . $e->getMessage());
+        }
+    }
 }
