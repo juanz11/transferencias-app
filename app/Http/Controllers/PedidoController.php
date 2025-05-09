@@ -46,6 +46,10 @@ class PedidoController extends Controller
             });
         }
 
+        if ($request->descuento !== null && $request->descuento !== '') {
+            $query->where('descuento', $request->descuento);
+        }
+
         $pedidos = $query->get();
         $tipoVista = $request->tipo_vista ?? 'individual';
 
@@ -120,6 +124,10 @@ class PedidoController extends Controller
 
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('transferencias.fecha_transferencia', [$fechaInicio, $fechaFin]);
+        }
+
+        if ($request->input('descuento') !== null && $request->input('descuento') !== '') {
+            $query->where('pedidos_confirmados.descuento', $request->input('descuento'));
         }
 
         $pedidos = $query->get();

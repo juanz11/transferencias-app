@@ -55,7 +55,20 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-9">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="descuento">Descuento (%)</label>
+                                    <select name="descuento" id="descuento" class="form-control">
+                                        <option value="">Todos los descuentos</option>
+                                        <option value="0">0%</option>
+                                        <option value="5">5%</option>
+                                        <option value="10">10%</option>
+                                        <option value="15">15%</option>
+                                        <option value="20">20%</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 <button type="submit" class="btn btn-primary">Generar Reporte</button>
                             </div>
                         </div>
