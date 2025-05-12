@@ -108,7 +108,7 @@ class PedidoController extends Controller
     public function reporte(Request $request)
     {
         $tipoVista = $request->input('tipo_vista', 'individual');
-        $visitadorId = $request->input('visitador');
+        $visitadorId = $request->input('visitador_id') ?: $request->input('visitador');
         $fechaInicio = $request->input('fecha_inicio');
         $fechaFin = $request->input('fecha_fin');
         
