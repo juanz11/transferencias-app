@@ -39,20 +39,9 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <a href="{{ route('visitadores.edit', ['visitador' => $visitador->id]) }}" 
-                                                   class="btn btn-sm btn-primary me-2">
+                                                   class="btn btn-sm btn-primary">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </a>
-                                                <form action="{{ route('visitadores.destroy', ['visitador' => $visitador->id]) }}" 
-                                                      method="POST" 
-                                                      class="d-inline"
-                                                      style="display: none;"
-                                                      onsubmit="return confirm('¿Está seguro que desea eliminar este visitador?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i> Eliminar
-                                                    </button>
-                                                </form>
                                             </div>
                                         </td>
                                     </tr>
