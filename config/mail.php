@@ -121,10 +121,11 @@ return [
     |
     */
 
-    'to' => [
+    // Comentado para permitir destinatarios dinámicos
+    /*'to' => [
         'address' => env('MAIL_TO_ADDRESS', 'recipient@example.com'),
         'name' => env('MAIL_TO_NAME', 'Recipient'),
-    ],
+    ],*/
 
     /*
     |--------------------------------------------------------------------------

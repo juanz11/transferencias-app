@@ -91,16 +91,26 @@ class TransferenciaPedidoController extends Controller
             $recipients = collect();
             
             // Agregar el email del visitador si existe
+            \Log::info('Email del visitador: ' . ($visitador->email ?? 'No tiene email'));
             if ($visitador->email) {
                 $recipients->push($visitador->email);
             }
             
             // Agregar los emails de todos los usuarios
             $userEmails = User::whereNotNull('email')->pluck('email');
+            \Log::info('Emails de usuarios encontrados: ' . $userEmails->join(', '));
+            
             $recipients = $recipients->merge($userEmails)->unique();
+            \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
             
             // Enviar el correo a todos los destinatarios
-            Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
+            try {
+                \Log::info('Intentando enviar correo a: ' . $recipients->join(', '));
+                Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
+            } catch (\Exception $mailError) {
+                \Log::error('Error al enviar correo: ' . $mailError->getMessage());
+                throw $mailError;
+            }
 
             DB::commit();
             return redirect()->route('transferencias.index')
