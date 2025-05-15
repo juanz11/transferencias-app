@@ -40,7 +40,7 @@
                 @method('PUT')
                 
                 <div class="row mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="fecha_transferencia">Fecha Transferencia:</label>
                             <input type="date" 
@@ -55,7 +55,22 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="fecha_confirmacion">Fecha Confirmación:</label>
+                            <input type="date" 
+                                   name="fecha_confirmacion" 
+                                   id="fecha_confirmacion"
+                                   class="form-control @error('fecha_confirmacion') is-invalid @enderror"
+                                   value="{{ old('fecha_confirmacion', $transferenciaConfirmada->created_at->format('Y-m-d')) }}"
+                                   required>
+                            @error('fecha_confirmacion')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="transferencia_numero">N° Transferencia:</label>
                             <input type="text" 
@@ -70,7 +85,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="visitador_id">Visitador:</label>
                             <select name="visitador_id" 

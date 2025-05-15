@@ -112,6 +112,9 @@ class TransferenciaController extends Controller
     {
         $request->validate([
             'fecha_transferencia' => 'required|date',
+            'fecha_confirmacion' => 'required|date',
+            'transferencia_numero' => 'required|string',
+            'visitador_id' => 'required|exists:visitadores,id',
             'productos' => 'required|array|min:1',
             'productos.*' => 'required|exists:productos,id',
             'cantidades' => 'required|array|min:1',
@@ -122,9 +125,15 @@ class TransferenciaController extends Controller
 
         $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
         
-        // Actualizar la fecha en la transferencia
+        // Actualizar la transferencia
         $transferenciaConfirmada->transferencia->fecha_transferencia = $request->fecha_transferencia;
+        $transferenciaConfirmada->transferencia->transferencia_numero = $request->transferencia_numero;
+        $transferenciaConfirmada->transferencia->visitador_id = $request->visitador_id;
         $transferenciaConfirmada->transferencia->save();
+
+        // Actualizar la fecha de confirmación
+        $transferenciaConfirmada->created_at = $request->fecha_confirmacion;
+        $transferenciaConfirmada->save();
 
         // Eliminar todos los pedidos confirmados existentes
         $transferenciaConfirmada->pedidosConfirmados()->delete();
