@@ -35,8 +35,9 @@ class TransferenciaController extends Controller
 
     public function listarConfirmados(Request $request)
     {
-        // Obtener lista de visitadores para el selector
+        // Obtener lista de visitadores y droguerías para los selectores
         $visitadores = Visitador::orderBy('nombre')->get();
+        $droguerias = Drogeria::orderBy('nombre')->get();
 
         $query = PedidoConfirmado::with([
             'transferenciaConfirmada.transferencia.visitador',
@@ -55,6 +56,20 @@ class TransferenciaController extends Controller
         if ($request->visitador_id) {
             $query->whereHas('transferenciaConfirmada.transferencia', function($q) use ($request) {
                 $q->where('visitador_id', $request->visitador_id);
+            });
+        }
+
+        // Filtrar por número de transferencia
+        if ($request->transferencia_numero) {
+            $query->whereHas('transferenciaConfirmada.transferencia', function($q) use ($request) {
+                $q->where('transferencia_numero', 'LIKE', '%' . $request->transferencia_numero . '%');
+            });
+        }
+
+        // Filtrar por droguería
+        if ($request->drogueria_id) {
+            $query->whereHas('transferenciaConfirmada.transferencia.cliente', function($q) use ($request) {
+                $q->where('drogueria', $request->drogueria_id);
             });
         }
 
@@ -97,7 +112,7 @@ class TransferenciaController extends Controller
             ]);
         }
 
-        return view('transferencias.confirmados', compact('transferencias', 'visitadores'));
+        return view('transferencias.confirmados', compact('transferencias', 'visitadores', 'droguerias'));
     }
 
     public function editarConfirmada($id)

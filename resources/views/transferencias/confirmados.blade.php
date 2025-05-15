@@ -52,6 +52,30 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="transferencia_numero">N° Transferencia:</label>
+                            <input type="text" 
+                                   name="transferencia_numero" 
+                                   id="transferencia_numero" 
+                                   class="form-control" 
+                                   value="{{ request('transferencia_numero') }}"
+                                   placeholder="Número de transferencia">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="drogueria_id">Droguería:</label>
+                            <select name="drogueria_id" id="drogueria_id" class="form-control">
+                                <option value="">Todas las droguerías</option>
+                                @foreach($droguerias as $drogueria)
+                                    <option value="{{ $drogueria->id }}" {{ request('drogueria_id') == $drogueria->id ? 'selected' : '' }}>
+                                        {{ $drogueria->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">
