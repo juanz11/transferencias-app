@@ -45,6 +45,7 @@
                                                 <form action="{{ route('productos.destroy', ['producto' => $producto->id]) }}" 
                                                       method="POST" 
                                                       class="d-inline"
+                                                      style="display: none;"
                                                       onsubmit="return confirm('¿Está seguro que desea eliminar este producto?');">
                                                     @csrf
                                                     @method('DELETE')

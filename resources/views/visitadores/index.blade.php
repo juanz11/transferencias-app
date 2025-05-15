@@ -45,6 +45,7 @@
                                                 <form action="{{ route('visitadores.destroy', ['visitador' => $visitador->id]) }}" 
                                                       method="POST" 
                                                       class="d-inline"
+                                                      style="display: none;"
                                                       onsubmit="return confirm('¿Está seguro que desea eliminar este visitador?');">
                                                     @csrf
                                                     @method('DELETE')
