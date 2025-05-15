@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TransferenciaConfirmada as TransferenciaConfirmadaMail;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
 use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
 use App\Models\Producto;
+use App\Models\User;
+use App\Models\Drogeria;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class TransferenciaController extends Controller
 {
@@ -123,32 +128,79 @@ class TransferenciaController extends Controller
             'descuentos.*' => 'required|integer|min:0|max:100',
         ]);
 
-        $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
-        
-        // Actualizar la transferencia
-        $transferenciaConfirmada->transferencia->fecha_transferencia = $request->fecha_transferencia;
-        $transferenciaConfirmada->transferencia->transferencia_numero = $request->transferencia_numero;
-        $transferenciaConfirmada->transferencia->visitador_id = $request->visitador_id;
-        $transferenciaConfirmada->transferencia->save();
+        DB::beginTransaction();
+        try {
+            $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
+            $visitador = Visitador::findOrFail($request->visitador_id);
+            $drogueria = Drogeria::findOrFail($transferenciaConfirmada->transferencia->cliente->drogueria);
+            
+            // Actualizar la transferencia
+            $transferenciaConfirmada->transferencia->fecha_transferencia = $request->fecha_transferencia;
+            $transferenciaConfirmada->transferencia->transferencia_numero = $request->transferencia_numero;
+            $transferenciaConfirmada->transferencia->visitador_id = $request->visitador_id;
+            $transferenciaConfirmada->transferencia->save();
 
-        // Actualizar la fecha de confirmación
-        $transferenciaConfirmada->created_at = $request->fecha_confirmacion;
-        $transferenciaConfirmada->save();
+            // Actualizar la fecha de confirmación
+            $transferenciaConfirmada->created_at = $request->fecha_confirmacion;
+            $transferenciaConfirmada->save();
 
-        // Eliminar todos los pedidos confirmados existentes
-        $transferenciaConfirmada->pedidosConfirmados()->delete();
+            // Eliminar todos los pedidos confirmados existentes
+            $transferenciaConfirmada->pedidosConfirmados()->delete();
 
-        // Crear los nuevos pedidos confirmados
-        foreach ($request->productos as $index => $productoId) {
-            PedidoConfirmado::create([
-                'transferencia_confirmada_id' => $transferenciaConfirmada->id,
-                'producto_id' => $productoId,
-                'cantidad' => $request->cantidades[$index],
-                'descuento' => $request->descuentos[$index],
-            ]);
+            // Crear los nuevos pedidos confirmados y calcular comisiones
+            $calculos = [];
+            foreach ($request->productos as $index => $productoId) {
+                $producto = Producto::findOrFail($productoId);
+                
+                $pedidoConfirmado = PedidoConfirmado::create([
+                    'transferencia_confirmada_id' => $transferenciaConfirmada->id,
+                    'producto_id' => $productoId,
+                    'cantidad' => $request->cantidades[$index],
+                    'descuento' => $request->descuentos[$index],
+                ]);
+
+                $calculos[] = (object)[
+                    'productos' => $producto,
+                    'cantidad' => $request->cantidades[$index],
+                    'comision' => $producto->comision,
+                    'total' => $request->cantidades[$index] * $producto->comision
+                ];
+            }
+
+            // Enviar el email al visitador y a todos los usuarios
+            $recipients = collect();
+            
+            // Agregar el email del visitador si existe
+            \Log::info('Email del visitador: ' . ($visitador->email ?? 'No tiene email'));
+            if ($visitador->email) {
+                $recipients->push($visitador->email);
+            }
+            
+            // Agregar los emails de todos los usuarios
+            $userEmails = User::whereNotNull('email')->pluck('email');
+            \Log::info('Emails de usuarios encontrados: ' . $userEmails->join(', '));
+            
+            $recipients = $recipients->merge($userEmails)->unique();
+            \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
+            
+            // Enviar el correo a todos los destinatarios
+            try {
+                \Log::info('Intentando enviar correo a: ' . $recipients->join(', '));
+                Mail::to($recipients)->send(new TransferenciaConfirmadaMail($transferenciaConfirmada, $calculos, $drogueria));
+            } catch (\Exception $mailError) {
+                \Log::error('Error al enviar correo: ' . $mailError->getMessage());
+                throw $mailError;
+            }
+
+            DB::commit();
+            return redirect()->route('transferencias.confirmados')
+                ->with('success', 'Transferencia confirmada actualizada exitosamente');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()
+                ->withInput()
+                ->with('error', 'Error al actualizar la transferencia: ' . $e->getMessage());
         }
-
-        return redirect()->route('transferencias.confirmados')
-            ->with('success', 'Transferencia confirmada actualizada exitosamente');
     }
 }
