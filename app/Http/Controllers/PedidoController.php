@@ -149,6 +149,7 @@ class PedidoController extends Controller
             foreach ($pedidos as $pedido) {
                 $key = $pedido->producto->nombre . '-' . 
                        $pedido->transferenciaConfirmada->transferencia->visitador->nombre . '-' .
+                       Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre . '-' .
                        $pedido->transferenciaConfirmada->transferencia->fecha_transferencia->format('Y-m-d');
 
                 if (!isset($pedidosAgrupados[$key])) {
@@ -156,6 +157,7 @@ class PedidoController extends Controller
                         'fecha_transferencia' => $pedido->transferenciaConfirmada->transferencia->fecha_transferencia,
                         'fecha_confirmacion' => $pedido->transferenciaConfirmada->created_at,
                         'visitador' => $pedido->transferenciaConfirmada->transferencia->visitador->nombre,
+                        'drogueria' => Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre,
                         'producto' => $pedido->producto->nombre,
                         'cantidad' => 0,
                         'descuento' => $pedido->descuento,
