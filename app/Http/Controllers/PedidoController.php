@@ -116,7 +116,8 @@ class PedidoController extends Controller
         $query = PedidoConfirmado::query()
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
             ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
-            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id');
+            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
+            ->join('clientes', 'transferencias.cliente_id', '=', 'clientes.id');
 
         if ($visitadorId) {
             $query->where('transferencias.visitador_id', $visitadorId);
@@ -124,6 +125,10 @@ class PedidoController extends Controller
 
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('transferencias.fecha_transferencia', [$fechaInicio, $fechaFin]);
+        }
+
+        if ($request->input('drogueria_id')) {
+            $query->where('clientes.drogueria', $request->input('drogueria_id'));
         }
 
         if ($request->input('descuento') !== null && $request->input('descuento') !== '') {
