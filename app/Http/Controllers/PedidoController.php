@@ -23,7 +23,7 @@ class PedidoController extends Controller
     {
         $query = PedidoConfirmado::with([
             'transferenciaConfirmada.transferencia.visitador',
-            'transferenciaConfirmada.transferencia.cliente',
+            'transferenciaConfirmada.transferencia.cliente.drogueria',
             'producto'
         ]);
 
@@ -124,7 +124,8 @@ class PedidoController extends Controller
         }
 
         if ($fechaInicio && $fechaFin) {
-            $query->whereBetween('transferencias.fecha_transferencia', [$fechaInicio, $fechaFin]);
+            $query->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
+                  ->whereDate('transferencias_confirmadas.created_at', '<=', $fechaFin);
         }
 
         if ($request->input('drogueria_id')) {
