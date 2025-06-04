@@ -281,8 +281,16 @@ class PedidoController extends Controller
                 ], 400);
             }
 
-            // Enviar el email al visitador
-            Mail::to($visitadorModel->email)
+            // Preparar lista de destinatarios
+            $recipients = [$visitadorModel->email];
+            
+            // Obtener emails de todos los usuarios
+            $allUsers = \App\Models\User::whereNotNull('email')->pluck('email')->toArray();
+            $recipients = array_merge($recipients, $allUsers);
+            $recipients = array_unique($recipients); // Eliminar duplicados
+
+            // Enviar el email a todos los destinatarios
+            Mail::to($recipients)
                 ->send(new ReporteVisitador(
                     $visitadorNombre,
                     $fechaInicioFormat,
