@@ -14,7 +14,9 @@
                             <input type="hidden" id="currentFechaInicio" value="{{ request()->get('fecha_inicio') }}">
                             <input type="hidden" id="currentFechaFin" value="{{ request()->get('fecha_fin') }}">
                             
-                            <button id="enviarEmail" class="btn btn-primary me-2">Enviar por Email</button>
+                            @if(request()->has('visitador_id') && !is_null(request()->get('visitador_id')))
+                                <button id="enviarEmail" class="btn btn-primary me-2">Enviar por Email</button>
+                            @endif
                             <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF</a>
                             <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
                         </div>
