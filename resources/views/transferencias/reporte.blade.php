@@ -21,6 +21,7 @@
                                     <th>Visitador</th>
                                     <th>Número de Transferencia</th>
                                     <th>Estado</th>
+                                    <th>Fecha Confirmación</th>
                                     <th>Factura</th>
                                 </tr>
                             </thead>
@@ -35,6 +36,13 @@
                                                 <span class="badge bg-success">Confirmada</span>
                                             @else
                                                 <span class="badge bg-warning">No Confirmada</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($transferencia->confirmada && $transferencia->confirmacion)
+                                                {{ $transferencia->confirmacion->created_at->format('d/m/Y H:i') }}
+                                            @else
+                                                -
                                             @endif
                                         </td>
                                         <td>
