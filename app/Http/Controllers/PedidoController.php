@@ -238,9 +238,9 @@ class PedidoController extends Controller
                 ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
                 ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
                 ->where('transferencias.visitador_id', $visitadorId)
-                ->whereBetween('transferencias.fecha_transferencia', [$fechaInicio, $fechaFin]);
+                ->whereBetween('transferencias_confirmadas.created_at', [$fechaInicio, $fechaFin]);
 
-            $productos = [];
+            $productosAgrupados = [];
             $total = 0;
 
             $resultados = $query->get();
@@ -252,15 +252,24 @@ class PedidoController extends Controller
             }
 
             foreach ($resultados as $pedido) {
-                $subtotal = $pedido->cantidad * $pedido->producto->comision;
-                $productos[] = [
-                    'nombre' => $pedido->producto->nombre,
-                    'cantidad' => $pedido->cantidad,
-                    'comision' => $pedido->producto->comision,
-                    'subtotal' => $subtotal
-                ];
-                $total += $subtotal;
+                $nombreProducto = $pedido->producto->nombre;
+                $comision = $pedido->producto->comision;
+                
+                if (!isset($productosAgrupados[$nombreProducto])) {
+                    $productosAgrupados[$nombreProducto] = [
+                        'nombre' => $nombreProducto,
+                        'cantidad' => 0,
+                        'comision' => $comision,
+                        'subtotal' => 0
+                    ];
+                }
+                
+                $productosAgrupados[$nombreProducto]['cantidad'] += $pedido->cantidad;
+                $productosAgrupados[$nombreProducto]['subtotal'] += $pedido->cantidad * $comision;
             }
+
+            $productos = array_values($productosAgrupados);
+            $total = array_sum(array_column($productos, 'subtotal'));
 
             $visitadorModel = Visitador::find($visitadorId);
             if (!$visitadorModel) {

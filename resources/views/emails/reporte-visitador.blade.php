@@ -12,7 +12,7 @@ ________________________________________
 @foreach ($productos as $producto)
 | {{$producto['nombre']}} | {{$producto['cantidad']}} | ${{$producto['comision']}} | $ {{number_format($producto['subtotal'], 2)}} |
 @endforeach
-| | | **Total (USD)** | **$ {{number_format($total, 2)}}** |
+| **Total** | **{{array_sum(array_column($productos, 'cantidad'))}}** | **Total (USD)** | **$ {{number_format($total, 2)}}** |
 @endcomponent
 
 ________________________________________
