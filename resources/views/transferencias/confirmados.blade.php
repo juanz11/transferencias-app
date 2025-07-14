@@ -23,23 +23,12 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Reporte de Transferencias por Fecha</h3>
+            <h3 class="card-title">Reporte de Transferencias Confirmadas</h3>
         </div>
         <div class="card-body">
             <form method="GET" action="{{ route('transferencias.confirmados') }}" class="mb-4">
                 <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="fecha">Fecha:</label>
-                            <input type="date" 
-                                   name="fecha" 
-                                   id="fecha" 
-                                   class="form-control" 
-                                   value="{{ request('fecha') }}"
-                                   required>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="visitador_id">Visitador:</label>
                             <select name="visitador_id" id="visitador_id" class="form-control">
@@ -52,7 +41,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label for="transferencia_numero">N° Transferencia:</label>
                             <input type="text" 
@@ -63,7 +52,7 @@
                                    placeholder="Número de transferencia">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label for="drogueria_id">Droguería:</label>
                             <select name="drogueria_id" id="drogueria_id" class="form-control">
@@ -76,7 +65,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-1 d-flex align-items-end">
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i> Buscar
@@ -130,7 +119,7 @@
                 </div>
             @else
                 <div class="alert alert-info">
-                    No hay transferencias confirmadas{{ request('fecha') ? ' para la fecha seleccionada' : '' }}
+                    No se encontraron transferencias confirmadas con los filtros seleccionados
                 </div>
             @endif
         </div>

@@ -48,15 +48,11 @@ class TransferenciaController extends Controller
         $query = PedidoConfirmado::with([
             'transferenciaConfirmada.transferencia.visitador',
             'producto'
-        ]);
+        ])
+        ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
+        ->orderBy('transferencias_confirmadas.created_at', 'desc');
 
-        // Filtrar por fecha específica (fecha de confirmación)
-        if ($request->fecha) {
-            $fecha = Carbon::createFromFormat('Y-m-d', $request->fecha);
-            $query->whereHas('transferenciaConfirmada', function($q) use ($fecha) {
-                $q->whereDate('created_at', $fecha);
-            });
-        }
+        // Se eliminó el filtro por fecha ya que ahora mostraremos todas las transferencias ordenadas por fecha de confirmación
 
         // Filtrar por visitador
         if ($request->visitador_id) {
@@ -87,7 +83,10 @@ class TransferenciaController extends Controller
 
         $transferencias = collect();
 
-        foreach ($pedidos->groupBy('transferenciaConfirmada.id') as $confirmacionId => $pedidosGroup) {
+        // Ordenar los pedidos por fecha de confirmación descendente antes de agrupar
+        $pedidosOrdenados = $pedidos->sortByDesc('transferenciaConfirmada.created_at');
+
+        foreach ($pedidosOrdenados->groupBy('transferenciaConfirmada.id') as $confirmacionId => $pedidosGroup) {
             $primerPedido = $pedidosGroup->first();
 
             // Debug: Verificar el primer pedido y sus relaciones
