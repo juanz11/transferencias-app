@@ -19,18 +19,21 @@ class TransferenciaController extends Controller
 {
     public function index()
     {
-        $query = Transferencia::with(['visitador', 'confirmacion'])
-            ->where('confirmada', true)
-            ->join('transferencias_confirmadas', 'transferencias.id', '=', 'transferencias_confirmadas.transferencia_id');
+        $query = Transferencia::with('visitador')
+            ->join('transferencias_confirmadas', 'transferencias.id', '=', 'transferencias_confirmadas.transferencia_id')
+            ->select(
+                'transferencias.*',
+                'transferencias_confirmadas.created_at as fecha_confirmacion',
+                'transferencias_confirmadas.factura_path'
+            );
 
         // Filtrar por fecha específica
         if (request()->fecha) {
             $fecha = Carbon::createFromFormat('Y-m-d', request()->fecha);
-            $query->whereDate('transferencias.created_at', $fecha);
+            $query->whereDate('transferencias_confirmadas.created_at', $fecha);
         }
 
         $transferencias = $query->orderBy('transferencias_confirmadas.created_at', 'desc')
-            ->select('transferencias.*')
             ->get();
 
         return view('transferencias.reporte', compact('transferencias'));

@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@php
+use Carbon\Carbon;
+@endphp
 
 @section('content')
 <div class="container">
@@ -28,22 +31,14 @@
                             <tbody>
                                 @foreach($transferencias as $transferencia)
                                     <tr>
-                                        <td>{{ $transferencia->fecha_transferencia->format('d/m/Y') }}</td>
+                                        <td>{{ date('d/m/Y', strtotime($transferencia->fecha_transferencia)) }}</td>
                                         <td>{{ $transferencia->visitador->nombre }}</td>
                                         <td>{{ $transferencia->transferencia_numero }}</td>
                                         <td>
-                                            @if($transferencia->confirmada)
-                                                <span class="badge bg-success">Confirmada</span>
-                                            @else
-                                                <span class="badge bg-warning">No Confirmada</span>
-                                            @endif
+                                            <span class="badge bg-success">Confirmada</span>
                                         </td>
                                         <td>
-                                            @if($transferencia->confirmada && $transferencia->confirmacion)
-                                                {{ $transferencia->confirmacion->created_at->format('d/m/Y H:i') }}
-                                            @else
-                                                -
-                                            @endif
+                                            {{ date('d/m/Y H:i', strtotime($transferencia->fecha_confirmacion)) }}
                                         </td>
                                         <td>
                                             @if($transferencia->factura_path)
