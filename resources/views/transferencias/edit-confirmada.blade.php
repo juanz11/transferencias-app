@@ -58,11 +58,11 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="fecha_confirmacion">Fecha Confirmación:</label>
-                            <input type="date" 
+                            <input type="datetime-local" 
                                    name="fecha_confirmacion" 
                                    id="fecha_confirmacion"
                                    class="form-control @error('fecha_confirmacion') is-invalid @enderror"
-                                   value="{{ old('fecha_confirmacion', $transferenciaConfirmada->created_at->format('Y-m-d')) }}"
+                                   value="{{ old('fecha_confirmacion', $transferenciaConfirmada->created_at->format('Y-m-d\\TH:i')) }}"
                                    required>
                             @error('fecha_confirmacion')
                                 <div class="invalid-feedback">{{ $message }}</div>

@@ -137,7 +137,7 @@ class TransferenciaController extends Controller
     {
         $request->validate([
             'fecha_transferencia' => 'required|date',
-            'fecha_confirmacion' => 'required|date',
+            'fecha_confirmacion' => 'required|date_format:Y-m-d\TH:i',
             'transferencia_numero' => 'required|string',
             'visitador_id' => 'required|exists:visitadores,id',
             'productos' => 'required|array|min:1',
