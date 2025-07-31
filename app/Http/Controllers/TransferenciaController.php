@@ -223,4 +223,29 @@ class TransferenciaController extends Controller
                 ->with('error', 'Error al actualizar la transferencia: ' . $e->getMessage());
         }
     }
+
+    public function eliminarConfirmada($id)
+    {
+        DB::beginTransaction();
+        try {
+            $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);
+            
+            // Eliminar los pedidos confirmados relacionados
+            $transferenciaConfirmada->pedidosConfirmados()->delete();
+            
+            // Eliminar la transferencia confirmada
+            $transferenciaConfirmada->delete();
+            
+            // Eliminar la transferencia
+            $transferenciaConfirmada->transferencia->delete();
+            
+            DB::commit();
+            return redirect()->route('transferencias.confirmados')
+                ->with('success', 'Transferencia eliminada exitosamente');
+                
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Error al eliminar la transferencia: ' . $e->getMessage());
+        }
+    }
 }

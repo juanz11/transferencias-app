@@ -7,6 +7,7 @@ use App\Http\Controllers\TransferenciaPedidoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\VisitadorController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\ClienteController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -25,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transferencias/confirmados', [TransferenciaController::class, 'listarConfirmados'])->name('transferencias.confirmados');
     Route::get('/transferencias/confirmados/{id}/edit', [TransferenciaController::class, 'editarConfirmada'])->name('transferencias.confirmados.edit');
     Route::put('/transferencias/confirmados/{id}', [TransferenciaController::class, 'actualizarConfirmada'])->name('transferencias.confirmados.update');
+    Route::delete('/transferencias/confirmados/{id}', [TransferenciaController::class, 'eliminarConfirmada'])->name('transferencias.confirmados.destroy');
 
     // Rutas de pedidos
     Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
@@ -43,5 +45,10 @@ Route::middleware('auth')->group(function () {
     // Rutas para productos
     Route::resource('productos', ProductoController::class)->parameters([
         'productos' => 'producto'
+    ]);
+
+    // Rutas para clientes
+    Route::resource('clientes', ClienteController::class)->parameters([
+        'clientes' => 'cliente'
     ]);
 });

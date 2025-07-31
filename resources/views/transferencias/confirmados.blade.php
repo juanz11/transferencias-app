@@ -108,9 +108,14 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('transferencias.confirmados.edit', $transferencia['id']) }}" 
-                                           class="btn btn-primary btn-sm">
+                                           class="btn btn-primary btn-sm me-2">
                                             <i class="fas fa-edit"></i> Editar
                                         </a>
+                                        <button type="button" 
+                                                class="btn btn-danger btn-sm"
+                                                onclick="confirmarEliminacion({{ $transferencia['id'] }}, '{{ $transferencia['transferencia_numero'] }}')">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -125,4 +130,39 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalConfirmarEliminar" tabindex="-1" aria-labelledby="modalConfirmarEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalConfirmarEliminarLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar la transferencia <span id="transferencia-numero"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-eliminar" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function confirmarEliminacion(id, numeroTransferencia) {
+    document.getElementById('transferencia-numero').textContent = numeroTransferencia;
+    document.getElementById('form-eliminar').action = `/transferencias/confirmados/${id}`;
+    var modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminar'));
+    modal.show();
+}
+</script>
+@endpush
+
 @endsection
