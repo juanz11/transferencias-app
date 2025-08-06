@@ -130,13 +130,14 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Cantidad</label>
-                                            <input type="number" class="form-control" name="cantidades[]" min="1" value="{{ $pedido->cantidad }}" required>
-                                        </div>
+                                       
                                         <div class="col-md-2">
                                             <label class="form-label">Descuento</label>
                                             <input type="number" class="form-control" name="descuentos[]" min="0" max="100" value="{{ $pedido->descuento }}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Cantidad</label>
+                                            <input type="number" class="form-control" name="cantidades[]" min="1" value="{{ $pedido->cantidad }}" required>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
                                             <button type="button" class="btn btn-danger eliminar-producto">
