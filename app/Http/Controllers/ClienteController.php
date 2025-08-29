@@ -8,10 +8,19 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $clientes = Cliente::with('drogueria')->get();
-        return view('clientes.index', compact('clientes'));
+        $search = $request->get('search', '');
+        
+        $clientes = Cliente::with('drogueria')
+            ->when($search, function($query) use ($search) {
+                $query->where('codigo_cliente', 'like', "%{$search}%")
+                      ->orWhere('nombre_cliente', 'like', "%{$search}%");
+            })
+            ->orderBy('nombre_cliente')
+            ->paginate(15);
+            
+        return view('clientes.index', compact('clientes', 'search'));
     }
 
     public function create()

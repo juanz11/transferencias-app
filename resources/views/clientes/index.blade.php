@@ -3,12 +3,18 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-between mb-4">
-        <div class="col-auto">
+        <div class="col-md-6">
             <h2>{{ __('Clientes') }}</h2>
         </div>
-        <div class="col-auto">
+        <div class="col-md-6 text-end">
+            <form action="{{ route('clientes.index') }}" method="GET" class="d-inline-flex mb-3 w-100">
+                <input type="text" name="search" class="form-control me-2" placeholder="Buscar por código o nombre" value="{{ $search ?? '' }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </form>
             <a href="{{ route('clientes.create') }}" class="btn btn-primary">
-                {{ __('Crear Nuevo Cliente') }}
+                <i class="fas fa-plus"></i> {{ __('Nuevo Cliente') }}
             </a>
         </div>
     </div>
@@ -22,7 +28,13 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped table-hover">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 40%;">
+                        <col style="width: 30%;">
+                        <col style="width: 10%;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>{{ __('Código') }}</th>
@@ -55,6 +67,10 @@
                         @endforeach
                     </tbody>
                 </table>
+                
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $clientes->appends(['search' => $search])->links() }}
+                </div>
             </div>
         </div>
     </div>
