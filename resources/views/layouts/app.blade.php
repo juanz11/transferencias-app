@@ -105,7 +105,7 @@
                         <li class="nav-item">
                             <form action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn btn-link nav-link">Cerrar Sesión</button>
+                                <button type="submit" class="btn btn-link nav-link">Cerrar Sesion</button>
                             </form>
                         </li>
                     @else

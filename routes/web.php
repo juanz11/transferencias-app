@@ -21,8 +21,8 @@ Route::middleware('auth')->group(function () {
     });
 
     // Rutas de transferencias
+    Route::get('/transferencias/reporte', [TransferenciaController::class, 'index'])->name('transferencias.reporte');
     Route::get('/transferencias', [TransferenciaController::class, 'index'])->name('transferencias.index');
-    Route::get('/transferencias/reporte', [TransferenciaController::class, 'reporteTransferencias'])->name('transferencias.reporte');
     Route::get('/transferencias/confirmados', [TransferenciaController::class, 'listarConfirmados'])->name('transferencias.confirmados');
     Route::get('/transferencias/confirmados/{id}/edit', [TransferenciaController::class, 'editarConfirmada'])->name('transferencias.confirmados.edit');
     Route::put('/transferencias/confirmados/{id}', [TransferenciaController::class, 'actualizarConfirmada'])->name('transferencias.confirmados.update');
