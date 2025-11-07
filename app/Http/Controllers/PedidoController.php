@@ -117,7 +117,8 @@ class PedidoController extends Controller
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
             ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
             ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
-            ->join('clientes', 'transferencias.cliente_id', '=', 'clientes.id');
+            ->join('clientes', 'transferencias.cliente_id', '=', 'clientes.id')
+            ->orderBy('productos.id');
 
         if ($visitadorId) {
             $query->where('transferencias.visitador_id', $visitadorId);
@@ -138,6 +139,11 @@ class PedidoController extends Controller
 
         $pedidos = $query->get();
 
+        // Ordenar la colecci贸n por producto_id para asegurar el orden
+        $pedidos = $pedidos->sortBy(function($pedido) {
+            return $pedido->producto_id;
+        })->values();
+
         // Preparar datos para la vista
         $data = [
             'tipoVista' => $tipoVista,
@@ -147,7 +153,7 @@ class PedidoController extends Controller
         // Si es vista agrupada, agrupar los pedidos
         if ($tipoVista === 'agrupado') {
             $pedidosAgrupados = [];
-            foreach ($pedidos as $pedido) {
+            foreach ($pedidos->sortBy('producto_id') as $pedido) {
                 $key = $pedido->producto->nombre . '-' . 
                        $pedido->transferenciaConfirmada->transferencia->visitador->nombre . '-' .
                        Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre . '-' .
@@ -178,7 +184,7 @@ class PedidoController extends Controller
 
         // Preparar resumen por visitador
         $resumenVisitador = [];
-        foreach ($pedidos as $pedido) {
+        foreach ($pedidos->sortBy('producto_id') as $pedido) {
             $visitadorNombre = $pedido->transferenciaConfirmada->transferencia->visitador->nombre;
             $productoNombre = $pedido->producto->nombre;
 
@@ -227,7 +233,7 @@ class PedidoController extends Controller
             
             if (!$visitadorId || !$fechaInicio || !$fechaFin) {
                 return response()->json([
-                    'message' => 'Error: Faltan parámetros necesarios (visitador, fecha_inicio, fecha_fin)',
+                    'message' => 'Error: Faltan par谩metros necesarios (visitador, fecha_inicio, fecha_fin)',
                     'data' => $request->all()
                 ], 400);
             }
@@ -237,9 +243,8 @@ class PedidoController extends Controller
                 ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
                 ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
                 ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
-                ->where('transferencias.visitador_id', $visitadorId)
-                ->whereBetween('transferencias_confirmadas.created_at', [$fechaInicio, $fechaFin]);
-
+                ->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
+                ->whereDate('transferencias_confirmadas.created_at', '<=', $fechaFin);
             $productosAgrupados = [];
             $total = 0;
 
@@ -247,7 +252,7 @@ class PedidoController extends Controller
             
             if ($resultados->isEmpty()) {
                 return response()->json([
-                    'message' => 'No se encontraron pedidos para el período y visitador seleccionados'
+                    'message' => 'No se encontraron pedidos para el per铆odo y visitador seleccionados'
                 ], 404);
             }
 
@@ -286,7 +291,7 @@ class PedidoController extends Controller
             // Verificar que el visitador tenga email
             if (!$visitadorModel->email) {
                 return response()->json([
-                    'message' => 'Error: El visitador no tiene una dirección de correo configurada'
+                    'message' => 'Error: El visitador no tiene una direcci贸n de correo configurada'
                 ], 400);
             }
 

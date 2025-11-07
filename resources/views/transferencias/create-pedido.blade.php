@@ -92,178 +92,333 @@
     .select2-container--default .select2-results__option--highlighted[aria-selected] {
         background-color: #0d6efd !important;
     }
+    
+    /* Custom Divider Style */
+    .divider-custom {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #495057;
+        margin: 2rem 0 1rem 0;
+    }
+    
+    .divider-custom::before,
+    .divider-custom::after {
+        content: '';
+        flex: 1;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .divider-custom::before {
+        margin-right: 1rem;
+    }
+    
+    .divider-custom::after {
+        margin-left: 1rem;
+    }
+    
+    /* Product Cards */
+    .producto-item .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid #e9ecef;
+    }
+    
+    .producto-item .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        border-color: #0d6efd;
+    }
+    
+    /* Input Groups */
+    .input-group-text {
+        font-weight: 600;
+    }
+    
+    /* Form Labels */
+    .form-label.fw-bold {
+        color: #e0e0e0;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Custom Background */
+    .card-custom-bg {
+        background-color: rgb(68, 78, 98) !important;
+        color: #ffffff;
+    }
+    
+    .card-custom-bg .form-control,
+    .card-custom-bg .form-select {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #212529;
+    }
+    
+    .card-custom-bg .form-control:focus,
+    .card-custom-bg .form-select:focus {
+        background-color: #ffffff;
+        border-color: #86b7fe;
+    }
+    
+    .card-custom-bg .divider-custom {
+        color: #ffffff;
+    }
+    
+    .card-custom-bg .divider-custom::before,
+    .card-custom-bg .divider-custom::after {
+        border-bottom-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .card-custom-bg .producto-item .card {
+        background-color: rgba(255, 255, 255, 0.98);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .card-custom-bg .producto-item .card:hover {
+        background-color: #ffffff;
+        border-color: #0d6efd;
+    }
+    
+    .card-custom-bg .form-text {
+        color: #e0e0e0 !important;
+    }
+    
+    /* Modal styling */
+    #confirmacionModal .modal-body p,
+    #confirmacionModal .modal-body strong,
+    #confirmacionModal .modal-body td,
+    #confirmacionModal .modal-body th {
+        color: #212529 !important;
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Crear Pedido y Transferencia Confirmada</h3>
-            </div>
-            <div class="card-body">
-                @if(session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
-                @endif
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-lg card-custom-bg">
+                <div class="card-body p-4">
+                    @if(session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
 
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <form action="{{ route('transferencias.pedidos.store') }}" method="POST" id="pedidoForm">
-                    @csrf
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="visitador_id" class="form-label">Visitador</label>
-                            <select name="visitador_id" id="visitador_id" class="form-select @error('visitador_id') is-invalid @enderror" required>
-                                <option value="">Seleccione un visitador</option>
-                                @foreach($visitadores as $visitador)
-                                    <option value="{{ $visitador->id }}" {{ old('visitador_id') == $visitador->id ? 'selected' : '' }}>
-                                        {{ $visitador->nombre }}
-                                    </option>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
                                 @endforeach
-                            </select>
-                            @error('visitador_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            </ul>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label">Cliente</label>
-                            <input type="text" class="form-control cliente-input @error('codigo_cliente') is-invalid @enderror" 
-                                   placeholder="Buscar cliente por nombre o código" 
-                                   required 
-                                   autocomplete="off">
-                            <input type="hidden" name="codigo_cliente" class="codigo-cliente-hidden" value="{{ old('codigo_cliente') }}">
-                            @error('codigo_cliente')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+                    @endif
 
-                    <div class="row mb-3">
-                      
+                    <form action="{{ route('transferencias.pedidos.store') }}" method="POST" id="pedidoForm">
+                        @csrf
                         
-                        <div class="col-md-4">
-                            <label for="fecha_transferencia" class="form-label">Fecha de Transferencia</label>
-                            <input type="date" name="fecha_transferencia" id="fecha_transferencia" 
-                                class="form-control @error('fecha_transferencia') is-invalid @enderror" 
-                                value="{{ old('fecha_transferencia') }}" required
-                                max="{{ date('Y-m-d') }}">
-                            @error('fecha_transferencia')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <!-- Divider Visitador -->
+                        <div class="divider-custom mb-4">
+                            <i class="fas fa-briefcase me-2"></i>Visitador
                         </div>
                         
-                          <div class="col-md-4">
-                            <label for="fecha_correo" class="form-label">Fecha de Correo</label>
-                            <input type="date" name="fecha_correo" id="fecha_correo" 
-                                class="form-control @error('fecha_correo') is-invalid @enderror" 
-                            value="{{ old('fecha_correo') }}" required
-                                max="{{ date('Y-m-d') }}">
-                            @error('fecha_correo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label for="visitador_id" class="form-label text-center d-block fw-bold">Seleccione un visitador</label>
+                                <div class="input-group input-group-lg justify-content-center">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-briefcase"></i>
+                                    </span>
+                                    <select name="visitador_id" id="visitador_id" class="form-select @error('visitador_id') is-invalid @enderror" required>
+                                        <option value="">Seleccione un visitador</option>
+                                        @foreach($visitadores as $visitador)
+                                            <option value="{{ $visitador->id }}" {{ old('visitador_id') == $visitador->id ? 'selected' : '' }}>
+                                                {{ $visitador->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('visitador_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="col-md-4">
-                            <label for="transferencia_numero" class="form-label">Número de Transferencia</label>
-                            <input type="text" name="transferencia_numero" id="transferencia_numero" 
-                                class="form-control @error('transferencia_numero') is-invalid @enderror" 
-                                value="{{ old('transferencia_numero') }}" required
-                                placeholder="Ingrese un número único">
-                            @error('transferencia_numero')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @else
-                                <div class="form-text">Este número debe ser único y no debe existir en otras transferencias.</div>
-                            @enderror
-                        </div>
-                    </div>
 
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h4 class="card-title mb-0">Productos</h4>
+                        <!-- Divider Fechas -->
+                        <div class="divider-custom mb-4">
+                            <i class="fas fa-calendar me-2"></i>Fechas y Número de Transferencia
                         </div>
-                        <div class="card-body">
-                            <div id="productos-list">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label for="fecha_correo" class="form-label text-center d-block fw-bold">Fecha de Correo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-info text-white">
+                                        <i class="fas fa-envelope-open"></i>
+                                    </span>
+                                    <input type="date" name="fecha_correo" id="fecha_correo" 
+                                        class="form-control @error('fecha_correo') is-invalid @enderror" 
+                                        value="{{ old('fecha_correo') }}" required
+                                        max="{{ date('Y-m-d') }}">
+                                    @error('fecha_correo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="fecha_transferencia" class="form-label text-center d-block fw-bold">Fecha de Transferencia</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-success text-white">
+                                        <i class="fas fa-arrow-right-arrow-left"></i>
+                                    </span>
+                                    <input type="date" name="fecha_transferencia" id="fecha_transferencia" 
+                                        class="form-control @error('fecha_transferencia') is-invalid @enderror" 
+                                        value="{{ old('fecha_transferencia') }}" required
+                                        max="{{ date('Y-m-d') }}">
+                                    @error('fecha_transferencia')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="transferencia_numero" class="form-label text-center d-block fw-bold">Número de Transferencia</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-danger text-white">
+                                        <i class="fas fa-hashtag"></i>
+                                    </span>
+                                    <input type="text" name="transferencia_numero" id="transferencia_numero" 
+                                        class="form-control fw-bold @error('transferencia_numero') is-invalid @enderror" 
+                                        value="{{ old('transferencia_numero') }}" required
+                                        placeholder="Ingrese el Nº">
+                                    @error('transferencia_numero')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @else
+                                        <div class="form-text small">Este número debe ser único</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divider Cliente -->
+                        <div class="divider-custom mb-4">
+                            <i class="fas fa-user-tie me-2"></i>Datos del Cliente
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label text-center d-block fw-bold">Código Cliente</label>
+                                <div class="input-group input-group-lg justify-content-center">
+                                    <span class="input-group-text bg-warning text-dark">
+                                        <i class="fas fa-hashtag"></i>
+                                    </span>
+                                    <input type="text" class="form-control cliente-input @error('codigo_cliente') is-invalid @enderror" 
+                                           placeholder="Buscar cliente por nombre o código" 
+                                           required 
+                                           autocomplete="off">
+                                    <input type="hidden" name="codigo_cliente" class="codigo-cliente-hidden" value="{{ old('codigo_cliente') }}">
+                                    @error('codigo_cliente')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divider Productos -->
+                        <div class="divider-custom mb-4">
+                            <i class="fas fa-box me-2"></i>Productos
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary btn-lg" id="add-producto">
+                                <i class="fas fa-plus me-2"></i>Agregar Producto
+                            </button>
+                        </div>
+
+                        <div id="productos-list" class="row g-3">
                                 @if(old('productos'))
                                     @foreach(old('productos') as $key => $oldProducto)
-                                        <div class="producto-item row mb-2">
-                                            <div class="col-md-5">
-                                                <select name="productos[{{ $key }}][id]" class="form-select producto-select @error('productos.'.$key.'.id') is-invalid @enderror" required>
-                                                    <option value="">Seleccione un producto</option>
-                                                    @foreach($productos as $producto)
-                                                        <option value="{{ $producto->id }}" {{ $oldProducto['id'] == $producto->id ? 'selected' : '' }}>
-                                                            {{ $producto->nombre }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('productos.'.$key.'.id')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                            <div class="col-md-3">
-                                                <input type="number" name="productos[{{ $key }}][cantidad]" 
-                                                    class="form-control @error('productos.'.$key.'.cantidad') is-invalid @enderror"
-                                                    value="{{ $oldProducto['cantidad'] }}" 
-                                                    placeholder="Cantidad" required min="1">
-                                                @error('productos.'.$key.'.cantidad')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                            <div class="col-md-3">
-                                                <input type="number" name="productos[{{ $key }}][descuento]" 
-                                                    class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
-                                                    value="{{ $oldProducto['descuento'] }}"
-                                                    placeholder="Descuento" step="0.01" min="0">
-                                                @error('productos.'.$key.'.descuento')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                            <div class="col-md-1">
-                                                <button type="button" class="btn btn-danger btn-sm remove-producto" {{ $key == 0 ? 'disabled' : '' }}>X</button>
+                                        <div class="col-12 col-md-6 col-lg-4 producto-item">
+                                            <div class="card h-100 shadow-sm">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <h6 class="mb-0"><i class="fas fa-box text-primary me-2"></i>Producto</h6>
+                                                        <button type="button" class="btn btn-danger btn-sm remove-producto" {{ $key == 0 ? 'disabled' : '' }}>
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    <select name="productos[{{ $key }}][id]" class="form-select producto-select mb-3 @error('productos.'.$key.'.id') is-invalid @enderror" required>
+                                                        <option value="">Seleccione un producto</option>
+                                                        @foreach($productos as $producto)
+                                                            <option value="{{ $producto->id }}" {{ $oldProducto['id'] == $producto->id ? 'selected' : '' }}>
+                                                                {{ $producto->nombre }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('productos.'.$key.'.id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                    <div class="input-group mb-2">
+                                                        <span class="input-group-text">Des</span>
+                                                        <input type="number" name="productos[{{ $key }}][descuento]" 
+                                                            class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
+                                                            value="{{ $oldProducto['descuento'] }}"
+                                                            placeholder="%" step="0.01" min="0">
+                                                        @error('productos.'.$key.'.descuento')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Unds</span>
+                                                        <input type="number" name="productos[{{ $key }}][cantidad]" 
+                                                            class="form-control @error('productos.'.$key.'.cantidad') is-invalid @enderror"
+                                                            value="{{ $oldProducto['cantidad'] }}" 
+                                                            placeholder="Cantidad" required min="1">
+                                                        @error('productos.'.$key.'.cantidad')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="producto-item row mb-2">
-                                        <div class="col-md-5">
-                                            <select name="productos[0][id]" class="form-select producto-select" required>
-                                                <option value="">Seleccione un producto</option>
-                                                @foreach($productos as $producto)
-                                                    <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="col-md-3">
-                                            <input type="number" name="productos[0][descuento]" class="form-control" placeholder="Descuento" step="0.01" min="0">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="number" name="productos[0][cantidad]" class="form-control" placeholder="Cantidad" required min="1">
-                                        </div>
-                                        <div class="col-md-1">
-                                            <button type="button" class="btn btn-danger btn-sm remove-producto" disabled>X</button>
+                                    <div class="col-12 col-md-6 col-lg-4 producto-item">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h6 class="mb-0"><i class="fas fa-box text-primary me-2"></i>Producto</h6>
+                                                    <button type="button" class="btn btn-danger btn-sm remove-producto" disabled>
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <select name="productos[0][id]" class="form-select producto-select mb-3" required>
+                                                    <option value="">Seleccione un producto</option>
+                                                    @foreach($productos as $producto)
+                                                        <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">Des</span>
+                                                    <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0">
+                                                </div>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Unds</span>
+                                                    <input type="number" name="productos[0][cantidad]" class="form-control" placeholder="Cantidad" required min="1">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 @endif
                             </div>
-                            <button type="button" class="btn btn-secondary mt-2" id="add-producto">Agregar Producto</button>
-                        </div>
-                    </div>
 
-                    <div class="text-end">
-                        <button type="button" class="btn btn-primary" id="confirmarPedido">Confirmar</button>
-                    </div>
-                </form>
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary btn-lg px-5" id="confirmarPedido">
+                                <i class="fas fa-check me-2"></i>Registrar
+                            </button>
+                        </div>
+                    </form>
 
                 <!-- Modal de Confirmación -->
                 <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
@@ -322,6 +477,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 @push('scripts')
