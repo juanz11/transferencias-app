@@ -20,6 +20,11 @@ Route::middleware('auth')->group(function () {
         return view('welcome');
     });
 
+    // Panel principal para visitador
+    Route::get('/visitador', function () {
+        return view('visitor.home');
+    })->name('visitador.home');
+
     // Rutas de transferencias
     Route::get('/transferencias/reporte', [TransferenciaController::class, 'index'])->name('transferencias.reporte');
     Route::get('/transferencias', [TransferenciaController::class, 'index'])->name('transferencias.index');

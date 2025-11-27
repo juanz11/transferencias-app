@@ -141,41 +141,45 @@
         <p>Gestione sus transferencias y pedidos de manera eficiente</p>
     </div>
 
-    <div class="row">
-        <!-- Card de Transferencias -->
-        <div class="col-md-6 mb-4">
-            <div class="modern-card">
-                <h2 class="card-title">
-                    <i class="fas fa-exchange-alt"></i>Transferencias
-                </h2>
-                <div class="d-grid gap-3">
-                    <a href="{{ route('transferencias.pedidos.create') }}" 
-                       class="btn btn-modern btn-modern-primary">
-                        <i class="fas fa-plus"></i>Nueva Transferencia
-                    </a>
-                    
-                    <a href="{{ route('transferencias.reporte') }}" 
-                       class="btn btn-modern btn-modern-secondary">
-                        <i class="fas fa-chart-bar"></i>Reporte
-                    </a>
+    @auth
+        @if(auth()->user()->rol === 'admin')
+            <div class="row">
+                <!-- Card de Transferencias -->
+                <div class="col-md-6 mb-4">
+                    <div class="modern-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-exchange-alt"></i>Transferencias
+                        </h2>
+                        <div class="d-grid gap-3">
+                            <a href="{{ route('transferencias.pedidos.create') }}" 
+                               class="btn btn-modern btn-modern-primary">
+                                <i class="fas fa-plus"></i>Nueva Transferencia
+                            </a>
+                            
+                            <a href="{{ route('transferencias.reporte') }}" 
+                               class="btn btn-modern btn-modern-secondary">
+                                <i class="fas fa-chart-bar"></i>Reporte
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Card de Pedidos -->
-        <div class="col-md-6 mb-4">
-            <div class="modern-card">
-                <h2 class="card-title">
-                    <i class="fas fa-clipboard-list"></i>Pedidos
-                </h2>
-                <div class="d-grid gap-3">
-                    <a href="{{ route('pedidos.index') }}" 
-                       class="btn btn-modern btn-modern-success">
-                        <i class="fas fa-list-alt"></i>Ver Pedidos
-                    </a>
+                <!-- Card de Pedidos -->
+                <div class="col-md-6 mb-4">
+                    <div class="modern-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-clipboard-list"></i>Pedidos
+                        </h2>
+                        <div class="d-grid gap-3">
+                            <a href="{{ route('pedidos.index') }}" 
+                               class="btn btn-modern btn-modern-success">
+                                <i class="fas fa-list-alt"></i>Ver Pedidos
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        @endif
+    @endauth
 </div>
 @endsection

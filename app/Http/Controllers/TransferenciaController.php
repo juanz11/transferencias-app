@@ -19,6 +19,10 @@ class TransferenciaController extends Controller
 {
     public function index()
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $query = Transferencia::with('visitador')
             ->join('transferencias_confirmadas', 'transferencias.id', '=', 'transferencias_confirmadas.transferencia_id')
             ->select(
@@ -41,6 +45,10 @@ class TransferenciaController extends Controller
 
     public function listarConfirmados(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         // Obtener lista de visitadores y droguerías para los selectores
         $visitadores = Visitador::orderBy('nombre')->get();
         $droguerias = Drogeria::orderBy('nombre')->get();
@@ -122,6 +130,10 @@ class TransferenciaController extends Controller
 
     public function editarConfirmada($id)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $transferenciaConfirmada = TransferenciaConfirmada::with([
             'transferencia.visitador',
             'pedidosConfirmados.producto'
@@ -135,6 +147,10 @@ class TransferenciaController extends Controller
 
     public function actualizarConfirmada(Request $request, $id)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $request->validate([
             'fecha_transferencia' => 'required|date',
             'fecha_confirmacion' => 'required|date_format:Y-m-d\TH:i',
@@ -226,6 +242,10 @@ class TransferenciaController extends Controller
 
     public function eliminarConfirmada($id)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         DB::beginTransaction();
         try {
             $transferenciaConfirmada = TransferenciaConfirmada::with('transferencia')->findOrFail($id);

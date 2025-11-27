@@ -69,33 +69,41 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     @auth
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('transferencias.index') }}">Transferencias</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/transferencias/confirmados">Editar Transferencia</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('pedidos.index') }}">Pedidos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('transferencias.pedidos.create') }}">Crear Pedido</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
-                                <i class="fas fa-box me-2"></i>Productos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('visitadores.*') ? 'active' : '' }}" href="{{ route('visitadores.index') }}">
-                                <i class="fas fa-users me-2"></i>Visitadores
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
-                                <i class="fas fa-user-tie me-2"></i>Clientes
-                            </a>
-                        </li>
+                        @if(auth()->user()->rol === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('transferencias.index') }}">Transferencias</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/transferencias/confirmados">Editar Transferencia</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('pedidos.index') }}">Pedidos</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('transferencias.pedidos.create') }}">Crear Pedido</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
+                                    <i class="fas fa-box me-2"></i>Productos
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('visitadores.*') ? 'active' : '' }}" href="{{ route('visitadores.index') }}">
+                                    <i class="fas fa-users me-2"></i>Visitadores
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
+                                    <i class="fas fa-user-tie me-2"></i>Clientes
+                                </a>
+                            </li>
+                        @elseif(auth()->user()->rol === 'visitador')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('visitador.home') ? 'active' : '' }}" href="{{ route('visitador.home') }}">
+                                    Inicio visitador
+                                </a>
+                            </li>
+                        @endif
                     @endauth
                 </ul>
                 <ul class="navbar-nav">
