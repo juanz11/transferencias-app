@@ -14,6 +14,10 @@ class PedidoController extends Controller
 {
     public function index()
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $visitadores = Visitador::all();
         $drogerias = Drogeria::all();
         return view('pedidos.index', compact('visitadores', 'drogerias'));
@@ -107,6 +111,10 @@ class PedidoController extends Controller
 
     public function reporte(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $tipoVista = $request->input('tipo_vista', 'individual');
         $visitadorId = $request->input('visitador_id') ?: $request->input('visitador');
         $fechaInicio = $request->input('fecha_inicio');
@@ -226,6 +234,10 @@ class PedidoController extends Controller
 
     public function enviarReporteEmail(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         try {
             $visitadorId = $request->visitador;
             $fechaInicio = $request->fecha_inicio;
@@ -328,6 +340,10 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $request->validate([
             'visitador_id' => 'required|exists:visitadors,id',
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',

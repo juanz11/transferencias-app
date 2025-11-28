@@ -10,6 +10,10 @@ class ClienteController extends Controller
 {
     public function index(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $search = $request->get('search', '');
         
         $clientes = Cliente::with('drogueria')
@@ -25,12 +29,20 @@ class ClienteController extends Controller
 
     public function create()
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $droguerias = Drogeria::all();
         return view('clientes.create', compact('droguerias'));
     }
 
     public function store(Request $request)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $request->validate([
             'codigo_cliente' => 'required|string|max:255',
             'nombre_cliente' => 'required|string|max:255',
@@ -45,17 +57,29 @@ class ClienteController extends Controller
 
     public function show(Cliente $cliente)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         return view('clientes.show', compact('cliente'));
     }
 
     public function edit(Cliente $cliente)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $droguerias = Drogeria::all();
         return view('clientes.edit', compact('cliente', 'droguerias'));
     }
 
     public function update(Request $request, Cliente $cliente)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $request->validate([
             'codigo_cliente' => 'required|string|max:255',
             'nombre_cliente' => 'required|string|max:255',
@@ -70,6 +94,10 @@ class ClienteController extends Controller
 
     public function destroy(Cliente $cliente)
     {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
         $cliente->delete();
 
         return redirect()->route('clientes.index')
