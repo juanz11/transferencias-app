@@ -37,10 +37,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
     Route::get('/pedidos/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
     Route::post('/pedidos/enviar-reporte', [PedidoController::class, 'enviarReporteEmail'])->name('pedidos.enviar-reporte');
+    Route::get('/visitador/pedidos/reporte', [PedidoController::class, 'reporteVisitador'])->name('visitador.pedidos.reporte');
+    Route::get('/admin/pedidos/pendientes', [PedidoController::class, 'pendientes'])->name('admin.pedidos.pendientes');
+    Route::post('/admin/pedidos/{transferencia}/cambiar-estado', [PedidoController::class, 'cambiarEstado'])->name('admin.pedidos.cambiar-estado');
 
     // Rutas para crear pedidos y transferencias confirmadas
     Route::get('/transferencias/pedidos/create', [TransferenciaPedidoController::class, 'create'])->name('transferencias.pedidos.create');
     Route::post('/transferencias/pedidos', [TransferenciaPedidoController::class, 'store'])->name('transferencias.pedidos.store');
+    Route::get('/visitador/pedidos/create', [TransferenciaPedidoController::class, 'createVisitador'])->name('visitador.pedidos.create');
+    Route::post('/visitador/pedidos', [TransferenciaPedidoController::class, 'storeVisitador'])->name('visitador.pedidos.store');
 
     // Rutas para visitadores
     Route::resource('visitadores', VisitadorController::class)->parameters([

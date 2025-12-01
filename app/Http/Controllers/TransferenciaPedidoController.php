@@ -123,4 +123,76 @@ class TransferenciaPedidoController extends Controller
                 ->with('error', 'Error al crear el pedido: ' . $e->getMessage());
         }
     }
+
+    public function createVisitador()
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'visitador') {
+            return redirect()->route('visitador.home');
+        }
+
+        $userEmail = auth()->user()->email;
+        $visitador = Visitador::where('email', $userEmail)->firstOrFail();
+        $clientes = Cliente::all();
+        $productos = Producto::all();
+
+        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'productos'));
+    }
+
+    public function storeVisitador(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'visitador') {
+            return redirect()->route('visitador.home');
+        }
+
+        $request->validate([
+            'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
+            'fecha_correo' => 'required|date',
+            'fecha_transferencia' => 'required|date',
+            'transferencia_numero' => 'required|string|unique:transferencias,transferencia_numero',
+            'productos' => 'required|array',
+            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|numeric|min:1',
+            'productos.*.descuento' => 'nullable|numeric|min:0'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $userEmail = auth()->user()->email;
+            $visitador = Visitador::where('email', $userEmail)->firstOrFail();
+            $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
+
+            $transferencia = new Transferencia([
+                'user_id' => auth()->id(),
+                'visitador_id' => $visitador->id,
+                'cliente_id' => $cliente->id,
+                'fecha_correo' => $request->fecha_correo,
+                'fecha_transferencia' => $request->fecha_transferencia,
+                'transferencia_numero' => $request->transferencia_numero,
+                'confirmada' => false
+            ]);
+            $transferencia->save();
+
+            foreach ($request->productos as $productoData) {
+                $producto = Producto::findOrFail($productoData['id']);
+
+                \App\Models\Pedido::create([
+                    'transferencia_id' => $transferencia->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $productoData['cantidad'],
+                    'descuento' => $productoData['descuento'] ?? 0,
+                    'estado' => 'pendiente'
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('visitador.pedidos.reporte')
+                ->with('success', 'Pedido registrado en estado pendiente correctamente');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()
+                ->withInput()
+                ->with('error', 'Error al registrar el pedido: ' . $e->getMessage());
+        }
+    }
 }

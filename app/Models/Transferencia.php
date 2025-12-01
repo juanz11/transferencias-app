@@ -40,4 +40,9 @@ class Transferencia extends Model
     {
         return $this->hasOne(TransferenciaConfirmada::class, 'transferencia_id');
     }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'transferencia_id');
+    }
 }

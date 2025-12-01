@@ -83,6 +83,12 @@
                                 <a class="nav-link" href="{{ route('transferencias.pedidos.create') }}">Crear Pedido</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.pedidos.pendientes') ? 'active' : '' }}" href="{{ route('admin.pedidos.pendientes') }}">
+                                    Control de Transferencias<br>
+                                    <small class="text-muted">Gestione sus transferencias y pedidos de manera eficiente</small>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
                                     <i class="fas fa-box me-2"></i>Productos
                                 </a>
@@ -101,6 +107,16 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('visitador.home') ? 'active' : '' }}" href="{{ route('visitador.home') }}">
                                     Inicio visitador
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('visitador.pedidos.create') ? 'active' : '' }}" href="{{ route('visitador.pedidos.create') }}">
+                                    Crear pedido
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('visitador.pedidos.reporte') ? 'active' : '' }}" href="{{ route('visitador.pedidos.reporte') }}">
+                                    Mis pedidos pendientes
                                 </a>
                             </li>
                         @endif

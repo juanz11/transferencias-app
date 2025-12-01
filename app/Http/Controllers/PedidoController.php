@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\PedidoConfirmado;
 use App\Models\Visitador;
 use App\Models\Drogeria;
+use App\Models\Pedido;
+use App\Models\Transferencia;
+use App\Models\TransferenciaConfirmada;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Mail\ReporteVisitador;
@@ -21,6 +24,113 @@ class PedidoController extends Controller
         $visitadores = Visitador::all();
         $drogerias = Drogeria::all();
         return view('pedidos.index', compact('visitadores', 'drogerias'));
+    }
+
+    public function pendientes()
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $transferencias = Transferencia::with(['visitador', 'cliente', 'pedidos.producto'])
+            ->whereHas('pedidos', function($q) {
+                $q->where('estado', 'pendiente');
+            })
+            ->orderByDesc('fecha_transferencia')
+            ->get();
+
+        return view('admin.pedidos.pendientes', compact('transferencias'));
+    }
+
+    public function cambiarEstado(Request $request, Transferencia $transferencia)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $request->validate([
+            'estado' => 'required|in:aprobado,rechazado',
+        ]);
+
+        $estado = $request->input('estado');
+
+        \DB::beginTransaction();
+        try {
+            $pedidosPendientes = $transferencia->pedidos()->where('estado', 'pendiente')->get();
+
+            if ($pedidosPendientes->isEmpty()) {
+                \DB::rollBack();
+                return redirect()->route('admin.pedidos.pendientes')
+                    ->with('error', 'No hay pedidos pendientes para esta transferencia.');
+            }
+
+            if ($estado === 'rechazado') {
+                $transferencia->pedidos()->where('estado', 'pendiente')->update(['estado' => 'rechazado']);
+                \DB::commit();
+                return redirect()->route('admin.pedidos.pendientes')
+                    ->with('success', 'Pedidos marcados como rechazados.');
+            }
+
+            // Aprobado: crear transferencia_confirmada y pedidos_confirmados
+            $transferenciaConfirmada = TransferenciaConfirmada::create([
+                'user_id' => auth()->id(),
+                'transferencia_id' => $transferencia->id,
+            ]);
+
+            foreach ($pedidosPendientes as $pedido) {
+                PedidoConfirmado::create([
+                    'transferencia_confirmada_id' => $transferenciaConfirmada->id,
+                    'producto_id' => $pedido->producto_id,
+                    'cantidad' => $pedido->cantidad,
+                    'descuento' => $pedido->descuento,
+                ]);
+            }
+
+            $transferencia->confirmada = true;
+            $transferencia->save();
+
+            $transferencia->pedidos()->where('estado', 'pendiente')->update(['estado' => 'aprobado']);
+
+            \DB::commit();
+
+            return redirect()->route('admin.pedidos.pendientes')
+                ->with('success', 'Pedidos aprobados y confirmados correctamente.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->route('admin.pedidos.pendientes')
+                ->with('error', 'Error al cambiar el estado de los pedidos: ' . $e->getMessage());
+        }
+    }
+
+    public function reporteVisitador(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'visitador') {
+            return redirect()->route('visitador.home');
+        }
+
+        $userEmail = auth()->user()->email;
+        $visitador = Visitador::where('email', $userEmail)->firstOrFail();
+
+        $query = Pedido::with(['transferencia.cliente.drogueria', 'producto'])
+            ->where('estado', 'pendiente')
+            ->whereHas('transferencia', function($q) use ($visitador) {
+                $q->where('visitador_id', $visitador->id);
+            });
+
+        if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
+            $query->whereHas('transferencia', function($q) use ($request) {
+                $q->whereDate('fecha_transferencia', '>=', $request->fecha_inicio)
+                  ->whereDate('fecha_transferencia', '<=', $request->fecha_fin);
+            });
+        }
+
+        $pedidos = $query->get();
+
+        return view('visitor.pedidos.reporte', [
+            'pedidos' => $pedidos,
+            'visitador' => $visitador,
+        ]);
     }
 
     private function getPedidosData(Request $request)

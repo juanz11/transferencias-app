@@ -14,7 +14,8 @@ class Pedido extends Model
         'transferencia_id',
         'producto_id',
         'cantidad',
-        'descuento'
+        'descuento',
+        'estado'
     ];
 
     public function transferencia()
