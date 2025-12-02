@@ -291,11 +291,11 @@
                                     <input type="text" name="transferencia_numero" id="transferencia_numero" 
                                         class="form-control fw-bold @error('transferencia_numero') is-invalid @enderror" 
                                         value="{{ old('transferencia_numero') }}" required
-                                        placeholder="Ingrese el Nº">
+                                        placeholder="Ingrese el Nº (8501 en adelante)">
                                     @error('transferencia_numero')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
-                                        <div class="form-text small">Este número debe ser único</div>
+                                        <div class="form-text small">Ingrese un número único entre 8501 y 9000 que no esté usado.</div>
                                     @enderror
                                 </div>
                             </div>

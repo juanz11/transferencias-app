@@ -98,9 +98,17 @@
                         <div class="row mb-4">
                             <div class="col-md-4 mb-3">
                                 <label for="transferencia_numero" class="form-label">Número de Transferencia</label>
-                                <input type="text" name="transferencia_numero" id="transferencia_numero"
-                                       class="form-control @error('transferencia_numero') is-invalid @enderror"
-                                       value="{{ old('transferencia_numero') }}" required>
+                                <select name="transferencia_numero" id="transferencia_numero"
+                                        class="form-select @error('transferencia_numero') is-invalid @enderror" required>
+                                    <option value="">Seleccione un número</option>
+                                    @php $oldNumero = old('transferencia_numero'); @endphp
+                                    @foreach($numerosDisponibles as $index => $numero)
+                                        <option value="{{ $numero }}"
+                                            {{ $oldNumero ? ($oldNumero == $numero ? 'selected' : '') : ($index === 0 ? 'selected' : '') }}>
+                                            {{ $numero }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('transferencia_numero')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

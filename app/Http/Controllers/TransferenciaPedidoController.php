@@ -35,7 +35,7 @@ class TransferenciaPedidoController extends Controller
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
             'fecha_correo' => 'required|date',
             'fecha_transferencia' => 'required|date',
-            'transferencia_numero' => 'required|string|unique:transferencias,transferencia_numero',
+            'transferencia_numero' => 'required|integer|min:8501|max:9000|unique:transferencias,transferencia_numero',
             'productos' => 'required|array',
             'productos.*.id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|numeric|min:1',
@@ -144,8 +144,20 @@ class TransferenciaPedidoController extends Controller
         $visitador = Visitador::where('email', $userEmail)->firstOrFail();
         $clientes = Cliente::all();
         $productos = Producto::all();
+        $usados = Transferencia::whereNotNull('transferencia_numero')
+            ->whereBetween('transferencia_numero', [8501, 9000])
+            ->pluck('transferencia_numero')
+            ->map(fn($n) => (int) $n)
+            ->toArray();
 
-        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'productos'));
+        $numerosDisponibles = [];
+        for ($i = 8501; $i <= 9000; $i++) {
+            if (!in_array($i, $usados)) {
+                $numerosDisponibles[] = $i;
+            }
+        }
+
+        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'productos', 'numerosDisponibles'));
     }
 
     public function storeVisitador(Request $request)
@@ -158,7 +170,7 @@ class TransferenciaPedidoController extends Controller
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
             'fecha_correo' => 'required|date',
             'fecha_transferencia' => 'required|date',
-            'transferencia_numero' => 'required|string|unique:transferencias,transferencia_numero',
+            'transferencia_numero' => 'required|integer|min:8501|max:9000|unique:transferencias,transferencia_numero',
             'productos' => 'required|array',
             'productos.*.id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|numeric|min:1',
