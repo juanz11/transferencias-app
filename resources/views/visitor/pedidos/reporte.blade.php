@@ -27,7 +27,6 @@
                                     <tr>
                                         <th>Fecha transferencia</th>
                                         <th>Cliente</th>
-                                        <th>Droguería</th>
                                         <th>Producto</th>
                                         <th>Cantidad</th>
                                         <th>Descuento</th>
@@ -39,7 +38,6 @@
                                         <tr>
                                             <td>{{ optional($pedido->transferencia->fecha_transferencia)->format('d/m/Y') }}</td>
                                             <td>{{ optional($pedido->transferencia->cliente)->nombre_cliente ?? '-' }}</td>
-                                            <td>{{ optional(optional($pedido->transferencia->cliente)->drogueriaRelacion)->nombre ?? '-' }}</td>
                                             <td>{{ $pedido->producto->nombre }}</td>
                                             <td>{{ $pedido->cantidad }}</td>
                                             <td>{{ $pedido->descuento }}%</td>

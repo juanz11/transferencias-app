@@ -9,6 +9,7 @@ use App\Models\Visitador;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada as TransferenciaConfirmadaModel;
 use App\Models\PedidoConfirmado;
+use App\Models\Pedido;
 use App\Models\Drogeria;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -71,6 +72,15 @@ class TransferenciaPedidoController extends Controller
             foreach ($request->productos as $productoData) {
                 $producto = Producto::findOrFail($productoData['id']);
                 
+                // Registrar también en la tabla pedidos con estado aprobado
+                Pedido::create([
+                    'transferencia_id' => $transferencia->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $productoData['cantidad'],
+                    'descuento' => $productoData['descuento'] ?? 0,
+                    'estado' => 'aprobado',
+                ]);
+
                 $pedidoConfirmado = new PedidoConfirmado([
                     'transferencia_confirmada_id' => $transferenciaConfirmada->id,
                     'producto_id' => $producto->id,
