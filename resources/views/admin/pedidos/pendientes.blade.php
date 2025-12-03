@@ -49,16 +49,9 @@
                                             </ul>
                                         </td>
                                         <td>
-                                            <form action="{{ route('admin.pedidos.cambiar-estado', $transferencia) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="estado" value="aprobado">
-                                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Aprobar y confirmar estos pedidos?')">Aprobar</button>
-                                            </form>
-                                            <form action="{{ route('admin.pedidos.cambiar-estado', $transferencia) }}" method="POST" class="d-inline ms-1">
-                                                @csrf
-                                                <input type="hidden" name="estado" value="rechazado">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Rechazar estos pedidos?')">Rechazar</button>
-                                            </form>
+                                            <a href="{{ route('admin.pedidos.show', $transferencia) }}" class="btn btn-primary btn-sm">
+                                                Ver detalle
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach

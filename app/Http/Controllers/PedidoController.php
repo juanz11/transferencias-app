@@ -8,9 +8,11 @@ use App\Models\Drogeria;
 use App\Models\Pedido;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Mail\ReporteVisitador;
+use App\Mail\TransferenciaConfirmada as TransferenciaConfirmadaMail;
 use Illuminate\Support\Facades\Mail;
 
 class PedidoController extends Controller
@@ -40,6 +42,17 @@ class PedidoController extends Controller
             ->get();
 
         return view('admin.pedidos.pendientes', compact('transferencias'));
+    }
+
+    public function showPendiente(Transferencia $transferencia)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $transferencia->load(['visitador', 'cliente.drogueria', 'pedidos.producto']);
+
+        return view('admin.pedidos.show', compact('transferencia'));
     }
 
     public function cambiarEstado(Request $request, Transferencia $transferencia)
@@ -77,13 +90,22 @@ class PedidoController extends Controller
                 'transferencia_id' => $transferencia->id,
             ]);
 
+            $calculos = [];
             foreach ($pedidosPendientes as $pedido) {
-                PedidoConfirmado::create([
+                $pedidoConfirmado = PedidoConfirmado::create([
                     'transferencia_confirmada_id' => $transferenciaConfirmada->id,
                     'producto_id' => $pedido->producto_id,
                     'cantidad' => $pedido->cantidad,
                     'descuento' => $pedido->descuento,
                 ]);
+
+                $producto = $pedidoConfirmado->producto;
+                $calculos[] = (object) [
+                    'productos' => $producto,
+                    'cantidad' => $pedidoConfirmado->cantidad,
+                    'comision' => $producto->comision,
+                    'total' => $pedidoConfirmado->cantidad * $producto->comision,
+                ];
             }
 
             $transferencia->confirmada = true;
@@ -91,10 +113,30 @@ class PedidoController extends Controller
 
             $transferencia->pedidos()->where('estado', 'pendiente')->update(['estado' => 'aprobado']);
 
+            // Enviar correo al visitador y a todos los usuarios (no bloquear si falla)
+            $visitador = $transferencia->visitador;
+            $drogueria = Drogeria::findOrFail($transferencia->cliente->drogueria);
+
+            $recipients = collect();
+            if ($visitador && $visitador->email) {
+                $recipients->push($visitador->email);
+            }
+
+            $userEmails = User::whereNotNull('email')->pluck('email');
+            $recipients = $recipients->merge($userEmails)->unique();
+
+            try {
+                if ($recipients->isNotEmpty()) {
+                    Mail::to($recipients)->send(new TransferenciaConfirmadaMail($transferenciaConfirmada, $calculos, $drogueria));
+                }
+            } catch (\Exception $mailError) {
+                \Log::error('Error al enviar correo de transferencia confirmada: ' . $mailError->getMessage());
+            }
+
             \DB::commit();
 
             return redirect()->route('admin.pedidos.pendientes')
-                ->with('success', 'Pedidos aprobados y confirmados correctamente.');
+                ->with('success', 'Pedidos aprobados, confirmados y notificados correctamente.');
 
         } catch (\Exception $e) {
             \DB::rollBack();
