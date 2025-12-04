@@ -2,6 +2,8 @@
 
 @section('styles')
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <style>
     .ui-autocomplete {
         max-height: 200px;
@@ -224,14 +226,32 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const productosContainer = document.getElementById('productos-list');
         const addProductoBtn = document.getElementById('add-producto');
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
 
+        function initializeSelect2(element) {
+            $(element).select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione un producto',
+                allowClear: true
+            });
+        }
+
+        document.querySelectorAll('#productos-list .producto-item select.form-select').forEach(function(select) {
+            initializeSelect2(select);
+        });
+
         addProductoBtn.addEventListener('click', function() {
             const template = document.querySelector('.producto-item').cloneNode(true);
+            const oldSelect = template.querySelector('select.form-select');
+            if ($(oldSelect).data('select2')) {
+                $(oldSelect).select2('destroy');
+            }
+
             template.querySelectorAll('select, input').forEach(input => {
                 input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
                 if (input.type !== 'button') {
@@ -245,6 +265,7 @@
                 this.closest('.producto-item').remove();
             });
             productosContainer.appendChild(template);
+            initializeSelect2(template.querySelector('select.form-select'));
             productoCount++;
         });
 

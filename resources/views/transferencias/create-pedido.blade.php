@@ -2,6 +2,8 @@
 
 @section('styles')
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <style>
     .ui-autocomplete {
         max-height: 200px;
@@ -483,6 +485,7 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         const fechaCorreo = document.getElementById('fecha_correo');
@@ -527,6 +530,24 @@
         const addProductoBtn = document.getElementById('add-producto');
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
 
+        function initializeSelect2(element) {
+            $(element).select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Seleccione un producto',
+                allowClear: true
+            });
+        }
+
+        $('#visitador_id').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Seleccione un visitador',
+            allowClear: true
+        });
+
+        $('.producto-select').each(function() {
+            initializeSelect2(this);
+        });
+
         addProductoBtn.addEventListener('click', function() {
             const productoTemplate = document.querySelector('.producto-item').cloneNode(true);
             
@@ -555,7 +576,7 @@
             productosContainer.appendChild(productoTemplate);
 
             // Inicializar Select2 en el nuevo select
-            //initializeSelect2(productoTemplate.querySelector('.producto-select'));
+            initializeSelect2(productoTemplate.querySelector('.producto-select'));
             
             productoCount++;
 
