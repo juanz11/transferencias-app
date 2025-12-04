@@ -44,9 +44,11 @@ class ClienteController extends Controller
         }
 
         $request->validate([
-            'codigo_cliente' => 'required|string|max:255',
+            'codigo_cliente' => 'required|string|max:255|unique:clientes,codigo_cliente',
             'nombre_cliente' => 'required|string|max:255',
             'drogueria' => 'required|exists:droguerias,id'
+        ], [
+            'codigo_cliente.unique' => 'El código de cliente ya existe registrado.',
         ]);
 
         Cliente::create($request->all());
@@ -81,9 +83,11 @@ class ClienteController extends Controller
         }
 
         $request->validate([
-            'codigo_cliente' => 'required|string|max:255',
+            'codigo_cliente' => 'required|string|max:255|unique:clientes,codigo_cliente,' . $cliente->id . ',id',
             'nombre_cliente' => 'required|string|max:255',
             'drogueria' => 'required|exists:droguerias,id'
+        ], [
+            'codigo_cliente.unique' => 'El código de cliente ya existe registrado.',
         ]);
 
         $cliente->update($request->all());
