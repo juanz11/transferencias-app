@@ -18,7 +18,7 @@
         body {
             -webkit-text-size-adjust: none;
             background-color: #ffffff;
-            color: #718096;
+            color: #111111;
             height: 100%;
             line-height: 1.4;
             margin: 0;
