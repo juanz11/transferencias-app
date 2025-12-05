@@ -407,23 +407,18 @@ class PedidoController extends Controller
                 ], 400);
             }
 
-            // Obtener los datos del reporte
+            // Obtener los datos del reporte solo para el visitador seleccionado
             $query = PedidoConfirmado::query()
                 ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
                 ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
                 ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
+                ->where('transferencias.visitador_id', $visitadorId)
                 ->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
                 ->whereDate('transferencias_confirmadas.created_at', '<=', $fechaFin);
             $productosAgrupados = [];
             $total = 0;
 
             $resultados = $query->get();
-            
-            if ($resultados->isEmpty()) {
-                return response()->json([
-                    'message' => 'No se encontraron pedidos para el per铆odo y visitador seleccionados'
-                ], 404);
-            }
 
             foreach ($resultados as $pedido) {
                 $nombreProducto = $pedido->producto->nombre;
