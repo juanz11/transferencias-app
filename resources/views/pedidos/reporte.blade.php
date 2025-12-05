@@ -17,7 +17,8 @@
                             @if(request()->has('visitador_id') && !is_null(request()->get('visitador_id')))
                                 <button id="enviarEmail" class="btn btn-primary me-2">Enviar por Email</button>
                             @endif
-                            <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF</a>
+                            <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF Completo</a>
+                            <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'resumen_pdf'])) }}" class="btn btn-outline-secondary me-2">PDF Resumen por Visitador</a>
                             <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
                         </div>
                     </div>

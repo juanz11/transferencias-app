@@ -307,7 +307,9 @@ class PedidoController extends Controller
         // Preparar datos para la vista
         $data = [
             'tipoVista' => $tipoVista,
-            'pedidos' => $pedidos
+            'pedidos' => $pedidos,
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
         ];
 
         // Si es vista agrupada, agrupar los pedidos
@@ -376,7 +378,10 @@ class PedidoController extends Controller
         $data['totalProductos'] = array_sum(array_column($data['resumenVisitador'], 'total_visitador'));
 
         // Si se solicita formato PDF, generar y devolver el PDF
-        if ($request->input('formato') === 'pdf') {
+        if ($request->input('formato') === 'resumen_pdf') {
+            $pdf = PDF::loadView('pedidos.pdf_resumen', $data);
+            return $pdf->download('reporte-pedidos-resumen-visitador.pdf');
+        } elseif ($request->input('formato') === 'pdf') {
             $pdf = PDF::loadView('pedidos.pdf', $data);
             return $pdf->download('reporte-pedidos.pdf');
         }
