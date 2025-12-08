@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/visitador/pedidos/reporte', [PedidoController::class, 'reporteVisitador'])->name('visitador.pedidos.reporte');
     Route::get('/admin/pedidos/pendientes', [PedidoController::class, 'pendientes'])->name('admin.pedidos.pendientes');
     Route::get('/admin/pedidos/{transferencia}', [PedidoController::class, 'showPendiente'])->name('admin.pedidos.show');
+    Route::get('/admin/pedidos/{transferencia}/edit', [PedidoController::class, 'editPendiente'])->name('admin.pedidos.edit');
+    Route::put('/admin/pedidos/{transferencia}', [PedidoController::class, 'updatePendiente'])->name('admin.pedidos.update');
     Route::post('/admin/pedidos/{transferencia}/cambiar-estado', [PedidoController::class, 'cambiarEstado'])->name('admin.pedidos.cambiar-estado');
 
     // Rutas para crear pedidos y transferencias confirmadas

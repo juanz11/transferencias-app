@@ -50,9 +50,14 @@ class PedidoController extends Controller
             return redirect()->route('visitador.home');
         }
 
-        $transferencia->load(['visitador', 'cliente.drogueria', 'pedidos.producto']);
+        $transferencia->load(['visitador', 'cliente', 'pedidos.producto']);
 
-        return view('admin.pedidos.show', compact('transferencia'));
+        $drogueria = null;
+        if ($transferencia->cliente && $transferencia->cliente->drogueria) {
+            $drogueria = Drogeria::find($transferencia->cliente->drogueria);
+        }
+
+        return view('admin.pedidos.show', compact('transferencia', 'drogueria'));
     }
 
     public function cambiarEstado(Request $request, Transferencia $transferencia)
@@ -143,6 +148,47 @@ class PedidoController extends Controller
             return redirect()->route('admin.pedidos.pendientes')
                 ->with('error', 'Error al cambiar el estado de los pedidos: ' . $e->getMessage());
         }
+    }
+
+    public function editPendiente(Transferencia $transferencia)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $transferencia->load(['visitador', 'cliente.drogueria']);
+        $droguerias = Drogeria::orderBy('nombre')->get();
+
+        return view('admin.pedidos.edit', compact('transferencia', 'droguerias'));
+    }
+
+    public function updatePendiente(Request $request, Transferencia $transferencia)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $request->validate([
+            'transferencia_numero' => 'required|string',
+            'codigo_cliente' => 'required|string',
+            'nombre_cliente' => 'required|string',
+            'drogueria' => 'required|exists:drogerias,id',
+        ]);
+
+        $cliente = $transferencia->cliente;
+
+        if ($cliente) {
+            $cliente->codigo_cliente = $request->codigo_cliente;
+            $cliente->nombre_cliente = $request->nombre_cliente;
+            $cliente->drogueria = $request->drogueria;
+            $cliente->save();
+        }
+
+        $transferencia->transferencia_numero = $request->transferencia_numero;
+        $transferencia->save();
+
+        return redirect()->route('admin.pedidos.show', $transferencia)
+            ->with('success', 'Transferencia actualizada correctamente.');
     }
 
     public function reporteVisitador(Request $request)

@@ -7,7 +7,10 @@
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Detalle de transferencia #{{ $transferencia->transferencia_numero }}</h5>
-                    <a href="{{ route('admin.pedidos.pendientes') }}" class="btn btn-outline-secondary btn-sm">Volver a pendientes</a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.pedidos.edit', $transferencia) }}" class="btn btn-primary btn-sm">Editar</a>
+                        <a href="{{ route('admin.pedidos.pendientes') }}" class="btn btn-outline-secondary btn-sm">Volver a pendientes</a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -22,6 +25,12 @@
                         <div class="col-md-4">
                             <strong>Código cliente:</strong>
                             <p class="mb-0">{{ optional($transferencia->cliente)->codigo_cliente }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Droguería:</strong>
+                            <p class="mb-0">{{ $drogueria ? $drogueria->nombre : '' }}</p>
                         </div>
                     </div>
                     <div class="row mb-3">
