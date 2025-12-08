@@ -8,6 +8,8 @@ use App\Models\Drogeria;
 use App\Models\Pedido;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada;
+use App\Models\Cliente;
+use App\Models\Producto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -158,8 +160,10 @@ class PedidoController extends Controller
 
         $transferencia->load(['visitador', 'cliente.drogueria']);
         $droguerias = Drogeria::orderBy('nombre')->get();
+        $clientes = Cliente::orderBy('nombre_cliente')->get();
+        $productos = Producto::orderBy('nombre')->get();
 
-        return view('admin.pedidos.edit', compact('transferencia', 'droguerias'));
+        return view('admin.pedidos.edit', compact('transferencia', 'droguerias', 'clientes', 'productos'));
     }
 
     public function updatePendiente(Request $request, Transferencia $transferencia)
@@ -170,25 +174,51 @@ class PedidoController extends Controller
 
         $request->validate([
             'transferencia_numero' => 'required|string',
-            'codigo_cliente' => 'required|string',
-            'nombre_cliente' => 'required|string',
-            'drogueria' => 'required|exists:drogerias,id',
+            'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
+            'pedido_ids' => 'required|array|min:1',
+            'pedido_ids.*' => 'required|exists:pedidos,id',
+            'producto_ids' => 'required|array|min:1',
+            'producto_ids.*' => 'required|exists:productos,id',
+            'cantidades' => 'required|array|min:1',
+            'cantidades.*' => 'required|integer|min:1',
+            'descuentos' => 'nullable|array',
+            'descuentos.*' => 'nullable|integer|min:0|max:100',
         ]);
 
-        $cliente = $transferencia->cliente;
+        \DB::beginTransaction();
+        try {
+            // Buscar el cliente por su código (igual que en crear pedido)
+            $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
 
-        if ($cliente) {
-            $cliente->codigo_cliente = $request->codigo_cliente;
-            $cliente->nombre_cliente = $request->nombre_cliente;
-            $cliente->drogueria = $request->drogueria;
-            $cliente->save();
+            // Actualizar datos de la transferencia
+            $transferencia->cliente_id = $cliente->id;
+            $transferencia->transferencia_numero = $request->transferencia_numero;
+            $transferencia->save();
+
+            // Actualizar pedidos (productos, cantidades, descuentos)
+            foreach ($request->pedido_ids as $index => $pedidoId) {
+                $pedido = Pedido::where('transferencia_id', $transferencia->id)
+                    ->where('id', $pedidoId)
+                    ->firstOrFail();
+
+                $pedido->producto_id = $request->producto_ids[$index] ?? $pedido->producto_id;
+                $pedido->cantidad = $request->cantidades[$index] ?? $pedido->cantidad;
+                $pedido->descuento = $request->descuentos[$index] ?? 0;
+                $pedido->save();
+            }
+
+            \DB::commit();
+
+            return redirect()->route('admin.pedidos.show', $transferencia)
+                ->with('success', 'Transferencia y pedidos actualizados correctamente.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar la transferencia: ' . $e->getMessage());
         }
-
-        $transferencia->transferencia_numero = $request->transferencia_numero;
-        $transferencia->save();
-
-        return redirect()->route('admin.pedidos.show', $transferencia)
-            ->with('success', 'Transferencia actualizada correctamente.');
     }
 
     public function reporteVisitador(Request $request)
@@ -204,7 +234,8 @@ class PedidoController extends Controller
             ->where('estado', 'pendiente')
             ->whereHas('transferencia', function($q) use ($visitador) {
                 $q->where('visitador_id', $visitador->id);
-            });
+            })
+            ->orderByDesc('created_at');
 
         if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
             $query->whereHas('transferencia', function($q) use ($request) {
