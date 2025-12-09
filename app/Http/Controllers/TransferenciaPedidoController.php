@@ -35,7 +35,7 @@ class TransferenciaPedidoController extends Controller
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
             'fecha_correo' => 'required|date',
             'fecha_transferencia' => 'required|date',
-            'transferencia_numero' => 'required|integer|min:8501|max:9000|unique:transferencias,transferencia_numero',
+            'transferencia_numero' => 'required|integer|unique:transferencias,transferencia_numero',
             'productos' => 'required|array',
             'productos.*.id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|numeric|min:1',
