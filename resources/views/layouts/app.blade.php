@@ -85,7 +85,7 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('admin.pedidos.pendientes') ? 'active' : '' }}" href="{{ route('admin.pedidos.pendientes') }}">
                                     Control de Transferencias<br>
-                                    <small class="text-muted">Gestione sus transferencias y pedidos de manera eficiente</small>
+                                    <small class="text-light">Gestione sus transferencias y pedidos de manera eficiente</small>
                                 </a>
                             </li>
                             <li class="nav-item">
