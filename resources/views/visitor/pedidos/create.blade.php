@@ -234,11 +234,13 @@
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
 
         function initializeSelect2(element) {
-            $(element).select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Seleccione un producto',
-                allowClear: true
-            });
+            if (!$(element).data('select2')) {
+                $(element).select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Seleccione un producto',
+                    allowClear: true
+                });
+            }
         }
 
         document.querySelectorAll('#productos-list .producto-item select.form-select').forEach(function(select) {
@@ -246,32 +248,68 @@
         });
 
         addProductoBtn.addEventListener('click', function() {
-            const template = document.querySelector('.producto-item').cloneNode(true);
-            const oldSelect = template.querySelector('select.form-select');
-            if ($(oldSelect).data('select2')) {
-                $(oldSelect).select2('destroy');
+            const baseItem = document.querySelector('.producto-item');
+            if (!baseItem) return;
+
+            const baseSelect = baseItem.querySelector('select.form-select');
+            if (baseSelect && $(baseSelect).data('select2')) {
+                $(baseSelect).select2('destroy');
             }
 
+            baseItem.querySelectorAll('.select2, .select2-container').forEach(el => el.remove());
+
+            const template = baseItem.cloneNode(true);
+
             template.querySelectorAll('select, input').forEach(input => {
-                input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
+                if (input.name) {
+                    input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
+                }
                 if (input.type !== 'button') {
                     input.value = '';
                     input.classList.remove('is-invalid');
                 }
+                const feedback = input.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.remove();
+                }
             });
+
             const removeBtn = template.querySelector('.remove-producto');
-            removeBtn.disabled = false;
-            removeBtn.addEventListener('click', function() {
-                this.closest('.producto-item').remove();
-            });
+            if (removeBtn) {
+                removeBtn.disabled = false;
+            }
+
             productosContainer.appendChild(template);
-            initializeSelect2(template.querySelector('select.form-select'));
+
+            const newSelect = template.querySelector('select.form-select');
+            if (newSelect) {
+                initializeSelect2(newSelect);
+            }
+
+            if (baseSelect) {
+                initializeSelect2(baseSelect);
+            }
+
             productoCount++;
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    const select = this.closest('.producto-item').querySelector('select.form-select');
+                    if (select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
+                    this.closest('.producto-item').remove();
+                });
+            }
         });
 
         document.querySelectorAll('.remove-producto').forEach(button => {
             if (!button.disabled) {
                 button.addEventListener('click', function() {
+                    const select = this.closest('.producto-item').querySelector('select.form-select');
+                    if (select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
                     this.closest('.producto-item').remove();
                 });
             }

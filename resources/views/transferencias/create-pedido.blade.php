@@ -531,11 +531,14 @@
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
 
         function initializeSelect2(element) {
-            $(element).select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Seleccione un producto',
-                allowClear: true
-            });
+            if (!$(element).data('select2')) {
+                $(element).select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Seleccione un producto',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
         }
 
         $('#visitador_id').select2({
@@ -549,17 +552,27 @@
         });
 
         addProductoBtn.addEventListener('click', function() {
-            const productoTemplate = document.querySelector('.producto-item').cloneNode(true);
-            
-            // Destruir Select2 existente si existe
-            const oldSelect = productoTemplate.querySelector('.producto-select');
-            if ($(oldSelect).data('select2')) {
-                $(oldSelect).select2('destroy');
+            // Usar siempre el primer .producto-item como plantilla base
+            const baseItem = document.querySelector('.producto-item');
+
+            if (!baseItem) return;
+
+            // Asegurar que la plantilla NO tenga select2 renderizado
+            const baseSelect = baseItem.querySelector('.producto-select');
+            if (baseSelect && $(baseSelect).data('select2')) {
+                $(baseSelect).select2('destroy');
             }
-            
-            // Actualizar nombres de campos
+            // Eliminar cualquier contenedor select2 clonado previamente
+            baseItem.querySelectorAll('.select2, .select2-container').forEach(el => el.remove());
+
+            // Clonar la tarjeta limpia
+            const productoTemplate = baseItem.cloneNode(true);
+
+            // Actualizar nombres de campos e indices
             productoTemplate.querySelectorAll('select, input').forEach(input => {
-                input.name = input.name.replace(/\[\d+\]/, `[${productoCount}]`);
+                if (input.name) {
+                    input.name = input.name.replace(/\[\d+\]/, `[${productoCount}]`);
+                }
                 if (input.type !== 'button') {
                     input.value = '';
                     input.classList.remove('is-invalid');
@@ -570,24 +583,39 @@
                 }
             });
 
-            // Habilitar botón de eliminar
-            productoTemplate.querySelector('.remove-producto').disabled = false;
-            
+            // Habilitar botón de eliminar en la nueva fila
+            const removeBtn = productoTemplate.querySelector('.remove-producto');
+            if (removeBtn) {
+                removeBtn.disabled = false;
+            }
+
+            // Agregar el nuevo producto al contenedor
             productosContainer.appendChild(productoTemplate);
 
-            // Inicializar Select2 en el nuevo select
-            initializeSelect2(productoTemplate.querySelector('.producto-select'));
-            
+            // Inicializar select2 SOLO en el select de la nueva fila
+            const newSelect = productoTemplate.querySelector('.producto-select');
+            if (newSelect) {
+                initializeSelect2(newSelect);
+            }
+
+            // Volver a inicializar select2 en el primer item (por si se destruyó)
+            if (baseSelect) {
+                initializeSelect2(baseSelect);
+            }
+
+            // Incrementar el contador
             productoCount++;
 
-            // Agregar evento para eliminar producto
-            productoTemplate.querySelector('.remove-producto').addEventListener('click', function() {
-                const select = this.closest('.producto-item').querySelector('.producto-select');
-                if ($(select).data('select2')) {
-                    $(select).select2('destroy');
-                }
-                this.closest('.producto-item').remove();
-            });
+            // Agregar evento para eliminar producto en la nueva fila
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    const select = this.closest('.producto-item').querySelector('.producto-select');
+                    if (select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
+                    this.closest('.producto-item').remove();
+                });
+            }
         });
 
         // Agregar evento de eliminar a los botones existentes
