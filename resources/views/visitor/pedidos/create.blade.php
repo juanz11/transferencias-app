@@ -166,7 +166,7 @@
                                                     <span class="input-group-text">Des</span>
                                                     <input type="number" name="productos[{{ $key }}][descuento]"
                                                            class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
-                                                           value="{{ $oldProducto['descuento'] }}" placeholder="%" step="0.01" min="0">
+                                                           value="{{ $oldProducto['descuento'] }}" placeholder="%" step="0.01" min="0" readonly>
                                                     @error('productos.'.$key.'.descuento')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -200,7 +200,7 @@
                                             </select>
                                             <div class="input-group mb-2">
                                                 <span class="input-group-text">Des</span>
-                                                <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0">
+                                                <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0" value="0" readonly>
                                             </div>
                                             <div class="input-group">
                                                 <span class="input-group-text">Unds</span>
@@ -247,6 +247,254 @@
             initializeSelect2(select);
         });
 
+        const reglasDescuento = {
+            16: function(cantidad) { // BROPAX 6 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty <= 7) return 4;
+                if (qty >= 8 && qty <= 11) return 6;
+                return 8; // 12 o más
+            },
+            13: function(cantidad) { // DOZHER 10 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            31: function(cantidad) { // ERONE 25 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            20: function(cantidad) { // Producto ID 20
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            22: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             23: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            14: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 2 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            14: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            8: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             9: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+              4 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 5) return 0;
+                if (qty >= 5 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            5 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+              21 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             25 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+
+             26 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             30 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                19 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                10 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               15 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             7 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             28 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               11 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                11 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               33 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                  33 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                 32 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            }
+
+
+
+        };
+
+        function calcularDescuento(productoId, cantidad) {
+            const regla = reglasDescuento[productoId];
+            if (!regla) {
+                return null; // sin regla para este producto
+            }
+            return regla(cantidad);
+        }
+
+        function configurarDescuentoAutomatico(productoItem) {
+            if (!productoItem) return;
+
+            const selectProducto = productoItem.querySelector('select.form-select');
+            const inputCantidad = productoItem.querySelector('input[name$="[cantidad]"]');
+            const inputDescuento = productoItem.querySelector('input[name$="[descuento]"]');
+
+            if (!selectProducto || !inputCantidad || !inputDescuento) return;
+
+            function actualizarDescuento() {
+                const productoId = parseInt(selectProducto.value, 10);
+                const cantidad = inputCantidad.value;
+
+                const descuento = calcularDescuento(productoId, cantidad);
+                if (descuento !== null) {
+                    inputDescuento.value = descuento;
+                } else {
+                    // Si no hay regla para este producto, dejar el descuento en 0
+                    inputDescuento.value = 0;
+                }
+            }
+
+            // Al cambiar de producto reiniciamos cantidad (0) y descuento (0) y limpiamos estados
+            selectProducto.addEventListener('change', function() {
+                // Reset de valores
+                inputCantidad.value = 0;
+                inputDescuento.value = 0;
+
+                // Limpiar clases de error
+                inputCantidad.classList.remove('is-invalid');
+                inputDescuento.classList.remove('is-invalid');
+
+                // Si hay mensajes de error justo después de los inputs, los dejamos como están
+                // y que el backend los vuelva a marcar si hace falta en el próximo submit.
+
+                // Recalcular por si la regla depende del 0 (normalmente quedará en 0)
+                actualizarDescuento();
+            });
+            // Recalcular descuento al modificar unidades (teclado o flechas)
+            inputCantidad.addEventListener('input', actualizarDescuento);
+            inputCantidad.addEventListener('change', actualizarDescuento);
+
+            // Inicializar descuento según el valor actual (por si viene de old())
+            actualizarDescuento();
+        }
+
+        // Configurar descuento automático en las filas existentes
+        document.querySelectorAll('#productos-list .producto-item').forEach(function(item) {
+            configurarDescuentoAutomatico(item);
+        });
+
         addProductoBtn.addEventListener('click', function() {
             const baseItem = document.querySelector('.producto-item');
             if (!baseItem) return;
@@ -265,7 +513,12 @@
                     input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
                 }
                 if (input.type !== 'button') {
-                    input.value = '';
+                    // Inicializamos cantidad vacía y descuento en 0
+                    if (input.name.endsWith('[descuento]')) {
+                        input.value = 0;
+                    } else {
+                        input.value = '';
+                    }
                     input.classList.remove('is-invalid');
                 }
                 const feedback = input.nextElementSibling;
@@ -291,6 +544,9 @@
             }
 
             productoCount++;
+
+            // Configurar descuento automático para la nueva fila
+            configurarDescuentoAutomatico(template);
 
             if (removeBtn) {
                 removeBtn.addEventListener('click', function() {
