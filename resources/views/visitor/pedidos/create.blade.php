@@ -232,6 +232,7 @@
         const productosContainer = document.getElementById('productos-list');
         const addProductoBtn = document.getElementById('add-producto');
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
+        let currentDrogueriaId = null; // Droguería del cliente seleccionado (si aplica)
 
         function initializeSelect2(element) {
             if (!$(element).data('select2')) {
@@ -437,6 +438,23 @@
         };
 
         function calcularDescuento(productoId, cantidad) {
+            // Descuento especial para producto 2 cuando el cliente es de droguería 18
+            if (productoId === 2 && currentDrogueriaId === 18) {
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;           // menor a 2 => 0%
+                if (qty >= 2 && qty < 4) return 3; // 2 y 3 => 3%
+                if (qty >= 4 && qty < 6) return 5; // 4 y 5 => 5%
+                return 7;                         // 6 o más => 7%
+            }
+
+             if (productoId === 13 && currentDrogueriaId === 18) {
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;           // menor a 2 => 0%
+                if (qty >= 3 && qty < 5) return 3; // 2 y 3 => 3%
+                if (qty >= 5 && qty < 7) return 5; // 4 y 5 => 5%
+                return 7;                         // 6 o más => 7%
+            }
+
             const regla = reglasDescuento[productoId];
             if (!regla) {
                 return null; // sin regla para este producto
@@ -575,9 +593,19 @@
             return [
                 'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
                 'value' => $cliente->codigo_cliente,
-                'nombre' => $cliente->nombre_cliente
+                'nombre' => $cliente->nombre_cliente,
+                'drogueria' => $cliente->drogueria,
             ];
         }));
+
+        // Si viene un cliente precargado (old), inicializamos la droguería actual
+        const codigoInicial = $('.codigo-cliente-hidden').val();
+        if (codigoInicial) {
+            const clienteInicial = clientes.find(c => c.value === codigoInicial);
+            if (clienteInicial) {
+                currentDrogueriaId = clienteInicial.drogueria;
+            }
+        }
 
         $('.cliente-input').autocomplete({
             source: clientes,
@@ -586,6 +614,7 @@
                 event.preventDefault();
                 $(this).val(ui.item.label);
                 $('.codigo-cliente-hidden').val(ui.item.value);
+                currentDrogueriaId = ui.item.drogueria;
             }
         }).autocomplete('instance')._renderItem = function(ul, item) {
             return $('<li>')
