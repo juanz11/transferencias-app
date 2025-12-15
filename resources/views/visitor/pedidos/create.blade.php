@@ -163,7 +163,7 @@
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="input-group mb-2">
-                                                    <span class="input-group-text">Des</span>
+                                                    <span class="input-group-text">Des (%)</span>
                                                     <input type="number" name="productos[{{ $key }}][descuento]"
                                                            class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
                                                            value="{{ $oldProducto['descuento'] }}" placeholder="%" step="0.01" min="0" readonly>
@@ -199,7 +199,7 @@
                                                 @endforeach
                                             </select>
                                             <div class="input-group mb-2">
-                                                <span class="input-group-text">Des</span>
+                                                <span class="input-group-text">Des (%)</span>
                                                 <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0" value="0" readonly>
                                             </div>
                                             <div class="input-group">
@@ -589,14 +589,7 @@
             }
         });
 
-        const clientes = @json($clientes->map(function($cliente) {
-            return [
-                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
-                'value' => $cliente->codigo_cliente,
-                'nombre' => $cliente->nombre_cliente,
-                'drogueria' => $cliente->drogueria,
-            ];
-        }));
+        const clientes = @json($clientesJs);
 
         // Si viene un cliente precargado (old), inicializamos la droguería actual
         const codigoInicial = $('.codigo-cliente-hidden').val();

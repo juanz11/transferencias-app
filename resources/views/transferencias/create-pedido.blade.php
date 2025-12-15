@@ -362,7 +362,7 @@
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                     <div class="input-group mb-2">
-                                                        <span class="input-group-text">Des</span>
+                                                        <span class="input-group-text">Des (porcentaje %)</span>
                                                         <input type="number" name="productos[{{ $key }}][descuento]" 
                                                             class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
                                                             value="{{ $oldProducto['descuento'] }}"
@@ -402,7 +402,7 @@
                                                     @endforeach
                                                 </select>
                                                 <div class="input-group mb-2">
-                                                    <span class="input-group-text">Des</span>
+                                                    <span class="input-group-text">Des (porcentaje %) </span>
                                                     <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0">
                                                 </div>
                                                 <div class="input-group">
@@ -571,7 +571,8 @@
             // Actualizar nombres de campos e indices
             productoTemplate.querySelectorAll('select, input').forEach(input => {
                 if (input.name) {
-                    input.name = input.name.replace(/\[\d+\]/, `[${productoCount}]`);
+                    // Usar concatenación de strings en lugar de template literal para evitar conflictos de parsing con Blade
+                    input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
                 }
                 if (input.type !== 'button') {
                     input.value = '';

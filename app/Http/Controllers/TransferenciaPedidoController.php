@@ -143,6 +143,14 @@ class TransferenciaPedidoController extends Controller
         $userEmail = auth()->user()->email;
         $visitador = Visitador::where('email', $userEmail)->firstOrFail();
         $clientes = Cliente::all();
+        $clientesJs = $clientes->map(function ($cliente) {
+            return [
+                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
+                'value' => $cliente->codigo_cliente,
+                'nombre' => $cliente->nombre_cliente,
+                'drogueria' => $cliente->drogueria,
+            ];
+        });
         $productos = Producto::all();
         $usados = Transferencia::whereNotNull('transferencia_numero')
             ->whereBetween('transferencia_numero', [8501, 9000])
@@ -157,7 +165,7 @@ class TransferenciaPedidoController extends Controller
             }
         }
 
-        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'productos', 'numerosDisponibles'));
+        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'clientesJs', 'productos', 'numerosDisponibles'));
     }
 
     public function storeVisitador(Request $request)
