@@ -97,29 +97,31 @@ class TransferenciaPedidoController extends Controller
                 ];
             }
 
-            // Enviar el email al visitador y a todos los usuarios
+            // Enviar el email solo al visitador del pedido y a los usuarios con rol admin
             $recipients = collect();
-            
+
             // Agregar el email del visitador si existe
             \Log::info('Email del visitador: ' . ($visitador->email ?? 'No tiene email'));
             if ($visitador->email) {
                 $recipients->push($visitador->email);
             }
-            
-            // Agregar los emails de todos los usuarios
-            $userEmails = User::whereNotNull('email')->pluck('email');
-            \Log::info('Emails de usuarios encontrados: ' . $userEmails->join(', '));
-            
-            $recipients = $recipients->merge($userEmails)->unique();
+
+            // Agregar los emails de los usuarios administradores
+            $adminEmails = User::where('rol', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email');
+            \Log::info('Emails de usuarios administradores encontrados: ' . $adminEmails->join(', '));
+
+            $recipients = $recipients->merge($adminEmails)->unique();
             \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
-            
+
             // Enviar el correo a todos los destinatarios
             try {
                 \Log::info('Intentando enviar correo a: ' . $recipients->join(', '));
                 Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
             } catch (\Exception $mailError) {
+                // Registrar el error pero no interrumpir la creación del pedido
                 \Log::error('Error al enviar correo: ' . $mailError->getMessage());
-                throw $mailError;
             }
 
             DB::commit();
