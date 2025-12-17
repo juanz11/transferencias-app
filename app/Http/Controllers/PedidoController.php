@@ -120,7 +120,7 @@ class PedidoController extends Controller
 
             $transferencia->pedidos()->where('estado', 'pendiente')->update(['estado' => 'aprobado']);
 
-            // Enviar correo al visitador y a todos los usuarios (no bloquear si falla)
+            // Enviar correo al visitador y a los usuarios con rol admin (no bloquear si falla)
             $visitador = $transferencia->visitador;
             $drogueria = Drogeria::findOrFail($transferencia->cliente->drogueria);
 
@@ -129,8 +129,11 @@ class PedidoController extends Controller
                 $recipients->push($visitador->email);
             }
 
-            $userEmails = User::whereNotNull('email')->pluck('email');
-            $recipients = $recipients->merge($userEmails)->unique();
+            // Agregar solo emails de usuarios administradores
+            $adminEmails = User::where('rol', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email');
+            $recipients = $recipients->merge($adminEmails)->unique();
 
             try {
                 if ($recipients->isNotEmpty()) {
@@ -536,12 +539,14 @@ class PedidoController extends Controller
                 ], 400);
             }
 
-            // Preparar lista de destinatarios
+            // Preparar lista de destinatarios: visitador + usuarios con rol admin
             $recipients = [$visitadorModel->email];
-            
-            // Obtener emails de todos los usuarios
-            $allUsers = \App\Models\User::whereNotNull('email')->pluck('email')->toArray();
-            $recipients = array_merge($recipients, $allUsers);
+
+            $adminEmails = \App\Models\User::where('rol', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->toArray();
+            $recipients = array_merge($recipients, $adminEmails);
             $recipients = array_unique($recipients); // Eliminar duplicados
 
             // Enviar el email a todos los destinatarios

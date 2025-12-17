@@ -203,7 +203,7 @@ class TransferenciaController extends Controller
                 ];
             }
 
-            // Enviar el email al visitador y a todos los usuarios
+            // Enviar el email solo al visitador y a los usuarios con rol admin
             $recipients = collect();
 
             // Agregar el email del visitador si existe
@@ -212,11 +212,13 @@ class TransferenciaController extends Controller
                 $recipients->push($visitador->email);
             }
 
-            // Agregar los emails de todos los usuarios
-            $userEmails = User::whereNotNull('email')->pluck('email');
-            \Log::info('Emails de usuarios encontrados: ' . $userEmails->join(', '));
+            // Agregar los emails de los usuarios administradores
+            $adminEmails = User::where('rol', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email');
+            \Log::info('Emails de usuarios administradores encontrados: ' . $adminEmails->join(', '));
 
-            $recipients = $recipients->merge($userEmails)->unique();
+            $recipients = $recipients->merge($adminEmails)->unique();
             \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
 
             // Enviar el correo a todos los destinatarios
