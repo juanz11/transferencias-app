@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TransferenciaPedidoController;
+use App\Http\Controllers\DiscountRuleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\VisitadorController;
 use App\Http\Controllers\ProductoController;
@@ -64,4 +65,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('clientes', ClienteController::class)->parameters([
         'clientes' => 'cliente'
     ]);
+
+    Route::resource('discount_rules', DiscountRuleController::class)->except(['show']);
 });

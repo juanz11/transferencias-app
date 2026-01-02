@@ -234,6 +234,8 @@
         let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
         let currentDrogueriaId = null; // Droguería del cliente seleccionado (si aplica)
 
+        const discountRules = @json($discountRules ?? []);
+
         function initializeSelect2(element) {
             if (!$(element).data('select2')) {
                 $(element).select2({
@@ -437,29 +439,50 @@
 
         };
 
+        function calcularDescuentoDesdeRegla(regla, cantidad) {
+            const qty = parseInt(cantidad, 10) || 0;
+
+            const minLow = parseInt(regla.min_qty_low, 10) || 0;
+            const minMid = parseInt(regla.min_qty_mid, 10) || 0;
+            const minHigh = parseInt(regla.min_qty_high, 10) || 0;
+
+            const pctLow = parseFloat(regla.pct_low) || 0;
+            const pctMid = parseFloat(regla.pct_mid) || 0;
+            const pctHigh = parseFloat(regla.pct_high) || 0;
+
+            if (qty < minLow) return 0;
+            if (qty >= minHigh) return pctHigh;
+            if (qty >= minMid) return pctMid;
+            return pctLow;
+        }
+
+        function buscarReglaBD(productoId) {
+            if (!Array.isArray(discountRules) || discountRules.length === 0) return null;
+
+            const drogueriaId = (currentDrogueriaId === null || currentDrogueriaId === undefined)
+                ? null
+                : parseInt(currentDrogueriaId, 10);
+
+            const pid = parseInt(productoId, 10);
+
+            let especifica = null;
+            if (drogueriaId !== null && !Number.isNaN(drogueriaId)) {
+                especifica = discountRules.find(r => parseInt(r.producto_id, 10) === pid && parseInt(r.drogueria_id, 10) === drogueriaId);
+            }
+
+            if (especifica) return especifica;
+
+            const global = discountRules.find(r => parseInt(r.producto_id, 10) === pid && (r.drogueria_id === null || r.drogueria_id === undefined));
+            return global || null;
+        }
+
         function calcularDescuento(productoId, cantidad) {
-            // Descuento especial para producto 2 cuando el cliente es de droguería 18
-            if (productoId === 2 && currentDrogueriaId === 18) {
-                const qty = parseInt(cantidad, 10) || 0;
-                if (qty < 2) return 0;           // menor a 2 => 0%
-                if (qty >= 2 && qty < 4) return 3; // 2 y 3 => 3%
-                if (qty >= 4 && qty < 6) return 5; // 4 y 5 => 5%
-                return 7;                         // 6 o más => 7%
+            const reglaBD = buscarReglaBD(productoId);
+            if (reglaBD) {
+                return calcularDescuentoDesdeRegla(reglaBD, cantidad);
             }
 
-             if (productoId === 13 && currentDrogueriaId === 18) {
-                const qty = parseInt(cantidad, 10) || 0;
-                if (qty < 3) return 0;           // menor a 2 => 0%
-                if (qty >= 3 && qty < 5) return 3; // 2 y 3 => 3%
-                if (qty >= 5 && qty < 7) return 5; // 4 y 5 => 5%
-                return 7;                         // 6 o más => 7%
-            }
-
-            const regla = reglasDescuento[productoId];
-            if (!regla) {
-                return null; // sin regla para este producto
-            }
-            return regla(cantidad);
+            return 0;
         }
 
         function configurarDescuentoAutomatico(productoItem) {
@@ -476,12 +499,7 @@
                 const cantidad = inputCantidad.value;
 
                 const descuento = calcularDescuento(productoId, cantidad);
-                if (descuento !== null) {
-                    inputDescuento.value = descuento;
-                } else {
-                    // Si no hay regla para este producto, dejar el descuento en 0
-                    inputDescuento.value = 0;
-                }
+                inputDescuento.value = descuento;
             }
 
             // Al cambiar de producto reiniciamos cantidad (0) y descuento (0) y limpiamos estados

@@ -11,6 +11,7 @@ use App\Models\TransferenciaConfirmada as TransferenciaConfirmadaModel;
 use App\Models\PedidoConfirmado;
 use App\Models\Pedido;
 use App\Models\Drogeria;
+use App\Models\DiscountRule;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -167,7 +168,19 @@ class TransferenciaPedidoController extends Controller
             }
         }
 
-        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'clientesJs', 'productos', 'numerosDisponibles'));
+        $discountRules = DiscountRule::active()
+            ->get([
+                'producto_id',
+                'drogueria_id',
+                'min_qty_low',
+                'pct_low',
+                'min_qty_mid',
+                'pct_mid',
+                'min_qty_high',
+                'pct_high',
+            ]);
+
+        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'clientesJs', 'productos', 'numerosDisponibles', 'discountRules'));
     }
 
     public function storeVisitador(Request $request)

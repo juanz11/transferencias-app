@@ -103,6 +103,11 @@
                                     <i class="fas fa-user-tie me-2"></i>Clientes
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('discount_rules.*') ? 'active' : '' }}" href="{{ route('discount_rules.index') }}">
+                                    <i class="fas fa-percent me-2"></i>Descuentos
+                                </a>
+                            </li>
                         @elseif(auth()->user()->rol === 'visitador')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('visitador.home') ? 'active' : '' }}" href="{{ route('visitador.home') }}">
