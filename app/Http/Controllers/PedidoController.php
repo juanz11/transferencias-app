@@ -40,7 +40,7 @@ class PedidoController extends Controller
             ->whereHas('pedidos', function($q) {
                 $q->where('estado', 'pendiente');
             })
-            ->orderByDesc('fecha_transferencia')
+            ->orderBy('transferencia_numero')
             ->get();
 
         return view('admin.pedidos.pendientes', compact('transferencias'));
