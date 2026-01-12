@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/pedidos/{transferencia}/edit', [PedidoController::class, 'editPendiente'])->name('admin.pedidos.edit');
     Route::put('/admin/pedidos/{transferencia}', [PedidoController::class, 'updatePendiente'])->name('admin.pedidos.update');
     Route::post('/admin/pedidos/{transferencia}/cambiar-estado', [PedidoController::class, 'cambiarEstado'])->name('admin.pedidos.cambiar-estado');
+    Route::delete('/admin/pedidos/{transferencia}', [PedidoController::class, 'destroyPendiente'])->name('admin.pedidos.destroy');
 
     // Rutas para crear pedidos y transferencias confirmadas
     Route::get('/transferencias/pedidos/create', [TransferenciaPedidoController::class, 'create'])->name('transferencias.pedidos.create');

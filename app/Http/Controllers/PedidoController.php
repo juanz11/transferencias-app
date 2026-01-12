@@ -616,4 +616,38 @@ class PedidoController extends Controller
             return back()->with('error', 'Error al crear el pedido: ' . $e->getMessage());
         }
     }
+
+    public function destroyPendiente(Transferencia $transferencia)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        \DB::beginTransaction();
+        try {
+            $pedidosPendientesQuery = $transferencia->pedidos()->where('estado', 'pendiente');
+            $cantidadPendientes = (int) $pedidosPendientesQuery->count();
+
+            if ($cantidadPendientes === 0) {
+                \DB::rollBack();
+                return redirect()->route('admin.pedidos.pendientes')
+                    ->with('error', 'No hay pedidos pendientes para eliminar en esta transferencia.');
+            }
+
+            $pedidosPendientesQuery->delete();
+
+            if ($transferencia->pedidos()->count() === 0) {
+                $transferencia->delete();
+            }
+
+            \DB::commit();
+            return redirect()->route('admin.pedidos.pendientes')
+                ->with('success', 'Pedidos pendientes eliminados correctamente.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->route('admin.pedidos.pendientes')
+                ->with('error', 'Error al eliminar pedidos pendientes: ' . $e->getMessage());
+        }
+    }
 }

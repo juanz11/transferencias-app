@@ -52,6 +52,14 @@
                                             <a href="{{ route('admin.pedidos.show', $transferencia) }}" class="btn btn-primary btn-sm">
                                                 Ver detalle
                                             </a>
+
+                                            <form action="{{ route('admin.pedidos.destroy', $transferencia) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Seguro que deseas eliminar los pedidos pendientes de esta transferencia?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    Eliminar
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
