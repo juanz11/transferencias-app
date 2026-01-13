@@ -115,9 +115,12 @@
                                 <div class="col-12 col-md-6 col-lg-4 producto-item">
                                     <div class="card h-100 shadow-sm">
                                         <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <strong class="mb-0">Producto</strong>
+                                                <button type="button" class="btn btn-danger btn-sm remove-producto-existente">Quitar</button>
+                                            </div>
                                             <input type="hidden" name="pedido_ids[]" value="{{ $pedido->id }}">
                                             <div class="mb-3">
-                                                <label class="form-label fw-bold mb-1">Producto</label>
                                                 <select name="producto_ids[]" class="form-select">
                                                     @foreach($productos as $producto)
                                                         <option value="{{ $producto->id }}" {{ $pedido->producto_id == $producto->id ? 'selected' : '' }}>
@@ -242,6 +245,15 @@
                 nuevosProductosList.appendChild(crearNuevoProductoItem());
             });
         }
+
+        document.querySelectorAll('.remove-producto-existente').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const card = this.closest('.producto-item');
+                if (card) {
+                    card.remove();
+                }
+            });
+        });
     });
 </script>
 @endpush

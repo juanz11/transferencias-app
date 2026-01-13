@@ -180,12 +180,12 @@ class PedidoController extends Controller
             'visitador_id' => 'required|exists:visitadores,id',
             'transferencia_numero' => 'required|string',
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
-            'pedido_ids' => 'required|array|min:1',
-            'pedido_ids.*' => 'required|exists:pedidos,id',
-            'producto_ids' => 'required|array|min:1',
-            'producto_ids.*' => 'required|exists:productos,id',
-            'cantidades' => 'required|array|min:1',
-            'cantidades.*' => 'required|integer|min:1',
+            'pedido_ids' => 'nullable|array',
+            'pedido_ids.*' => 'required_with:pedido_ids|exists:pedidos,id',
+            'producto_ids' => 'nullable|array',
+            'producto_ids.*' => 'required_with:pedido_ids|exists:productos,id',
+            'cantidades' => 'nullable|array',
+            'cantidades.*' => 'required_with:pedido_ids|integer|min:1',
             'descuentos' => 'nullable|array',
             'descuentos.*' => 'nullable|integer|min:0|max:100',
             'nuevos_producto_ids' => 'nullable|array',
@@ -201,6 +201,15 @@ class PedidoController extends Controller
             // Buscar el cliente por su código (igual que en crear pedido)
             $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
 
+            $pedidoIds = $request->input('pedido_ids', []);
+            $nuevosProductoIds = $request->input('nuevos_producto_ids', []);
+            if (count($pedidoIds) + count($nuevosProductoIds) === 0) {
+                \DB::rollBack();
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Debe quedar al menos un producto en la transferencia.');
+            }
+
             // Actualizar datos de la transferencia
             $transferencia->cliente_id = $cliente->id;
             $transferencia->visitador_id = $request->visitador_id;
@@ -208,7 +217,7 @@ class PedidoController extends Controller
             $transferencia->save();
 
             // Actualizar pedidos (productos, cantidades, descuentos)
-            foreach ($request->pedido_ids as $index => $pedidoId) {
+            foreach ($pedidoIds as $index => $pedidoId) {
                 $pedido = Pedido::where('transferencia_id', $transferencia->id)
                     ->where('id', $pedidoId)
                     ->firstOrFail();
@@ -219,8 +228,16 @@ class PedidoController extends Controller
                 $pedido->save();
             }
 
+            // Eliminar de la BD los pedidos pendientes que fueron quitados en el formulario
+            $pedidoIdsInt = collect($pedidoIds)->map(fn($id) => (int) $id)->filter()->values();
+            $pendientesQuery = $transferencia->pedidos()->where('estado', 'pendiente');
+            if ($pedidoIdsInt->isEmpty()) {
+                $pendientesQuery->delete();
+            } else {
+                $pendientesQuery->whereNotIn('id', $pedidoIdsInt->all())->delete();
+            }
+
             // Crear nuevos pedidos (si se agregaron productos en la edición)
-            $nuevosProductoIds = $request->input('nuevos_producto_ids', []);
             $nuevasCantidades = $request->input('nuevos_cantidades', []);
             $nuevosDescuentos = $request->input('nuevos_descuentos', []);
 
