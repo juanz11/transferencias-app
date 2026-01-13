@@ -2,9 +2,25 @@
 
 @section('styles')
 <style>
+    main.container {
+        max-width: 100% !important;
+    }
+
     .table th {
         background-color: #f8f9fa;
         white-space: nowrap;
+    }
+    .table {
+        min-width: 1400px;
+    }
+    .col-farmacia {
+        min-width: 260px;
+    }
+    .col-drogueria {
+        min-width: 220px;
+    }
+    .col-pedidos {
+        min-width: 320px;
     }
     .descuento {
         color: #28a745;
@@ -83,8 +99,10 @@
                                 <th>Fecha Transferencia</th>
                                 <th>Fecha Confirmación</th>
                                 <th>Visitador</th>
+                                <th class="col-farmacia">Farmacia</th>
+                                <th class="col-drogueria">Droguería</th>
                                 <th>N° Transferencia</th>
-                                <th>Pedidos</th>
+                                <th class="col-pedidos">Pedidos</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -94,8 +112,10 @@
                                     <td>{{ $transferencia['fecha_transferencia']->format('d/m/Y') }}</td>
                                     <td>{{ $transferencia['fecha_confirmacion']->format('d/m/Y H:i') }}</td>
                                     <td>{{ $transferencia['visitador'] }}</td>
+                                    <td class="col-farmacia">{{ $transferencia['farmacia'] ?? '' }}</td>
+                                    <td class="col-drogueria">{{ $transferencia['drogueria'] ?? '' }}</td>
                                     <td>{{ $transferencia['transferencia_numero'] }}</td>
-                                    <td>
+                                    <td class="col-pedidos">
                                         @foreach($transferencia['pedidos'] as $pedido)
                                             <div class="pedido-detalle">
                                                 <strong>{{ $pedido['producto'] }}</strong><br>

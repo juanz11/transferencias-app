@@ -55,6 +55,7 @@ class TransferenciaController extends Controller
 
         $query = PedidoConfirmado::with([
             'transferenciaConfirmada.transferencia.visitador',
+            'transferenciaConfirmada.transferencia.cliente',
             'producto'
         ])
         ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
@@ -86,6 +87,14 @@ class TransferenciaController extends Controller
         // Agrupar pedidos por transferencia
         $pedidos = $query->get();
 
+        $drogueriaIds = $pedidos
+            ->pluck('transferenciaConfirmada.transferencia.cliente.drogueria')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $drogueriasPorId = Drogeria::whereIn('id', $drogueriaIds)->get()->keyBy('id');
+
         // Debug: Verificar si hay pedidos
         \Log::info('Número de pedidos encontrados: ' . $pedidos->count());
 
@@ -108,12 +117,19 @@ class TransferenciaController extends Controller
             }
 
             $transferencia = $primerPedido->transferenciaConfirmada->transferencia;
+            $cliente = $transferencia->cliente;
+            $drogueriaNombre = 'Sin Droguería';
+            if ($cliente && $cliente->drogueria) {
+                $drogueriaNombre = $drogueriasPorId[$cliente->drogueria]->nombre ?? 'Sin Droguería';
+            }
 
             $transferencias->push([
                 'id' => $primerPedido->transferenciaConfirmada->id,
                 'fecha_transferencia' => $transferencia->fecha_transferencia,
                 'fecha_confirmacion' => $primerPedido->transferenciaConfirmada->created_at,
                 'visitador' => $transferencia->visitador ? $transferencia->visitador->nombre : 'Sin Visitador',
+                'farmacia' => $cliente ? $cliente->nombre_cliente : 'Sin Cliente',
+                'drogueria' => $drogueriaNombre,
                 'transferencia_numero' => $transferencia->transferencia_numero,
                 'pedidos' => $pedidosGroup->map(function($pedido) {
                     return [
