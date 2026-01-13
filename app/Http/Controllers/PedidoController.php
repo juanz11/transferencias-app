@@ -162,11 +162,12 @@ class PedidoController extends Controller
         }
 
         $transferencia->load(['visitador', 'cliente.drogueria']);
+        $visitadores = Visitador::orderBy('nombre')->get();
         $droguerias = Drogeria::orderBy('nombre')->get();
         $clientes = Cliente::orderBy('nombre_cliente')->get();
         $productos = Producto::orderBy('nombre')->get();
 
-        return view('admin.pedidos.edit', compact('transferencia', 'droguerias', 'clientes', 'productos'));
+        return view('admin.pedidos.edit', compact('transferencia', 'visitadores', 'droguerias', 'clientes', 'productos'));
     }
 
     public function updatePendiente(Request $request, Transferencia $transferencia)
@@ -176,6 +177,7 @@ class PedidoController extends Controller
         }
 
         $request->validate([
+            'visitador_id' => 'required|exists:visitadores,id',
             'transferencia_numero' => 'required|string',
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
             'pedido_ids' => 'required|array|min:1',
@@ -186,6 +188,12 @@ class PedidoController extends Controller
             'cantidades.*' => 'required|integer|min:1',
             'descuentos' => 'nullable|array',
             'descuentos.*' => 'nullable|integer|min:0|max:100',
+            'nuevos_producto_ids' => 'nullable|array',
+            'nuevos_producto_ids.*' => 'required_with:nuevos_producto_ids|exists:productos,id',
+            'nuevos_cantidades' => 'nullable|array',
+            'nuevos_cantidades.*' => 'required_with:nuevos_producto_ids|integer|min:1',
+            'nuevos_descuentos' => 'nullable|array',
+            'nuevos_descuentos.*' => 'nullable|integer|min:0|max:100',
         ]);
 
         \DB::beginTransaction();
@@ -195,6 +203,7 @@ class PedidoController extends Controller
 
             // Actualizar datos de la transferencia
             $transferencia->cliente_id = $cliente->id;
+            $transferencia->visitador_id = $request->visitador_id;
             $transferencia->transferencia_numero = $request->transferencia_numero;
             $transferencia->save();
 
@@ -208,6 +217,26 @@ class PedidoController extends Controller
                 $pedido->cantidad = $request->cantidades[$index] ?? $pedido->cantidad;
                 $pedido->descuento = $request->descuentos[$index] ?? 0;
                 $pedido->save();
+            }
+
+            // Crear nuevos pedidos (si se agregaron productos en la edición)
+            $nuevosProductoIds = $request->input('nuevos_producto_ids', []);
+            $nuevasCantidades = $request->input('nuevos_cantidades', []);
+            $nuevosDescuentos = $request->input('nuevos_descuentos', []);
+
+            foreach ($nuevosProductoIds as $index => $productoId) {
+                $cantidad = $nuevasCantidades[$index] ?? null;
+                if ($cantidad === null) {
+                    continue;
+                }
+
+                Pedido::create([
+                    'transferencia_id' => $transferencia->id,
+                    'producto_id' => $productoId,
+                    'cantidad' => $cantidad,
+                    'descuento' => $nuevosDescuentos[$index] ?? 0,
+                    'estado' => 'pendiente',
+                ]);
             }
 
             \DB::commit();

@@ -24,8 +24,18 @@
                         {{-- Datos fijos --}}
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <strong>Visitador:</strong>
-                                <p class="mb-0">{{ optional($transferencia->visitador)->nombre }}</p>
+                                <label for="visitador_id" class="form-label">Visitador</label>
+                                <select name="visitador_id" id="visitador_id" class="form-select @error('visitador_id') is-invalid @enderror" required>
+                                    <option value="">Seleccione un visitador</option>
+                                    @foreach($visitadores as $visitador)
+                                        <option value="{{ $visitador->id }}" {{ (string) old('visitador_id', $transferencia->visitador_id) === (string) $visitador->id ? 'selected' : '' }}>
+                                            {{ $visitador->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('visitador_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="col-md-4">
                                 <strong>Fecha de transferencia:</strong>
@@ -130,6 +140,17 @@
                             @endforeach
                         </div>
 
+                        <hr>
+
+                        <h5 class="mb-3">Agregar productos</h5>
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" id="add-producto">
+                                Agregar Producto
+                            </button>
+                        </div>
+
+                        <div id="nuevos-productos-list" class="row g-3 mb-3"></div>
+
                         <div class="mt-4">
                             <button type="submit" class="btn btn-primary">
                                 Guardar cambios
@@ -173,6 +194,54 @@
                 .append('<div>' + item.nombre + '<br><small class="text-muted">' + item.value + '</small></div>')
                 .appendTo(ul);
         };
+
+        const nuevosProductosList = document.getElementById('nuevos-productos-list');
+        const addProductoBtn = document.getElementById('add-producto');
+
+        function crearNuevoProductoItem() {
+            const col = document.createElement('div');
+            col.className = 'col-12 col-md-6 col-lg-4 nuevo-producto-item';
+
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="mb-0">Nuevo producto</strong>
+                            <button type="button" class="btn btn-danger btn-sm remove-nuevo-producto">Quitar</button>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold mb-1">Producto</label>
+                            <select name="nuevos_producto_ids[]" class="form-select" required>
+                                <option value="">Seleccione un producto</option>
+                                @foreach($productos as $producto)
+                                    <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text">Des</span>
+                            <input type="number" name="nuevos_descuentos[]" class="form-control" min="0" max="100" value="0">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Unds</span>
+                            <input type="number" name="nuevos_cantidades[]" class="form-control" min="1" value="1" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            col.querySelector('.remove-nuevo-producto').addEventListener('click', function () {
+                col.remove();
+            });
+
+            return col;
+        }
+
+        if (addProductoBtn && nuevosProductosList) {
+            addProductoBtn.addEventListener('click', function () {
+                nuevosProductosList.appendChild(crearNuevoProductoItem());
+            });
+        }
     });
 </script>
 @endpush
