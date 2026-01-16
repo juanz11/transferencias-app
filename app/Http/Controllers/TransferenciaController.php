@@ -23,7 +23,7 @@ class TransferenciaController extends Controller
             return redirect()->route('visitador.home');
         }
 
-        $query = Transferencia::with('visitador')
+        $query = Transferencia::with(['visitador', 'cliente'])
             ->join('transferencias_confirmadas', 'transferencias.id', '=', 'transferencias_confirmadas.transferencia_id')
             ->select(
                 'transferencias.*',
@@ -39,6 +39,22 @@ class TransferenciaController extends Controller
 
         $transferencias = $query->orderBy('transferencias_confirmadas.created_at', 'desc')
             ->get();
+
+        $drogueriaIds = $transferencias
+            ->pluck('cliente.drogueria')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $drogueriasPorId = Drogeria::whereIn('id', $drogueriaIds)->get()->keyBy('id');
+
+        foreach ($transferencias as $transferencia) {
+            $drogueriaNombre = 'Sin Droguería';
+            if ($transferencia->cliente && $transferencia->cliente->drogueria) {
+                $drogueriaNombre = $drogueriasPorId[$transferencia->cliente->drogueria]->nombre ?? 'Sin Droguería';
+            }
+            $transferencia->setAttribute('drogueria_nombre', $drogueriaNombre);
+        }
 
         return view('transferencias.reporte', compact('transferencias'));
     }

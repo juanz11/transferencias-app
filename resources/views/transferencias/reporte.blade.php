@@ -22,10 +22,11 @@ use Carbon\Carbon;
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Visitador</th>
+                                    <th>Farmacia</th>
+                                    <th>Droguería</th>
                                     <th>Número de Transferencia</th>
                                     <th>Estado</th>
                                     <th>Fecha Confirmación</th>
-                                    <th>Factura</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -33,21 +34,14 @@ use Carbon\Carbon;
                                     <tr>
                                         <td>{{ date('d/m/Y', strtotime($transferencia->fecha_transferencia)) }}</td>
                                         <td>{{ $transferencia->visitador->nombre }}</td>
+                                        <td>{{ optional($transferencia->cliente)->nombre_cliente }}</td>
+                                        <td>{{ $transferencia->drogueria_nombre ?? '' }}</td>
                                         <td>{{ $transferencia->transferencia_numero }}</td>
                                         <td>
                                             <span class="badge bg-success">Confirmada</span>
                                         </td>
                                         <td>
                                             {{ date('d/m/Y H:i', strtotime($transferencia->fecha_confirmacion)) }}
-                                        </td>
-                                        <td>
-                                            @if($transferencia->factura_path)
-                                                <a href="{{ asset($transferencia->factura_path) }}" target="_blank" class="btn btn-sm btn-info">
-                                                    Ver Factura
-                                                </a>
-                                            @else
-                                                <span class="text-muted">Sin factura</span>
-                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
