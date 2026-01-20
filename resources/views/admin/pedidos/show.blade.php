@@ -52,11 +52,19 @@
 
             <div class="card mb-3">
                 <div class="card-header">
-                    <h6 class="mb-0">Pedidos de esta transferencia</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Pedidos de esta transferencia</h6>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-product-asc">Producto A-Z</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-product-desc">Producto Z-A</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-asc">Cantidad ↑</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-desc">Cantidad ↓</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped mb-0">
+                        <table class="table table-striped mb-0" id="tabla-pedidos-transferencia">
                             <thead>
                                 <tr>
                                     <th>Producto</th>
@@ -100,3 +108,64 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const table = document.getElementById('tabla-pedidos-transferencia');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        function normalizeText(text) {
+            return (text || '').toString().trim().toLowerCase();
+        }
+
+        function sortRows(comparator) {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort(comparator);
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function getCellText(row, index) {
+            const cell = row.children[index];
+            return cell ? cell.textContent : '';
+        }
+
+        function getCellNumber(row, index) {
+            const value = parseFloat(getCellText(row, index).replace(',', '.'));
+            return Number.isFinite(value) ? value : 0;
+        }
+
+        const sortProductAsc = document.getElementById('sort-product-asc');
+        const sortProductDesc = document.getElementById('sort-product-desc');
+        const sortCantidadAsc = document.getElementById('sort-cantidad-asc');
+        const sortCantidadDesc = document.getElementById('sort-cantidad-desc');
+
+        if (sortProductAsc) {
+            sortProductAsc.addEventListener('click', function () {
+                sortRows((a, b) => normalizeText(getCellText(a, 0)).localeCompare(normalizeText(getCellText(b, 0))));
+            });
+        }
+
+        if (sortProductDesc) {
+            sortProductDesc.addEventListener('click', function () {
+                sortRows((a, b) => normalizeText(getCellText(b, 0)).localeCompare(normalizeText(getCellText(a, 0))));
+            });
+        }
+
+        if (sortCantidadAsc) {
+            sortCantidadAsc.addEventListener('click', function () {
+                sortRows((a, b) => getCellNumber(a, 1) - getCellNumber(b, 1));
+            });
+        }
+
+        if (sortCantidadDesc) {
+            sortCantidadDesc.addEventListener('click', function () {
+                sortRows((a, b) => getCellNumber(b, 1) - getCellNumber(a, 1));
+            });
+        }
+    })();
+</script>
+@endpush
