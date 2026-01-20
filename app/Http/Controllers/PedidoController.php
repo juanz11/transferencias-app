@@ -43,6 +43,22 @@ class PedidoController extends Controller
             ->orderBy('transferencia_numero')
             ->get();
 
+        $drogueriaIds = $transferencias
+            ->pluck('cliente.drogueria')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $drogueriasPorId = Drogeria::whereIn('id', $drogueriaIds)->get()->keyBy('id');
+
+        foreach ($transferencias as $transferencia) {
+            $drogueriaNombre = 'Sin Droguería';
+            if ($transferencia->cliente && $transferencia->cliente->drogueria) {
+                $drogueriaNombre = $drogueriasPorId[$transferencia->cliente->drogueria]->nombre ?? 'Sin Droguería';
+            }
+            $transferencia->setAttribute('drogueria_nombre', $drogueriaNombre);
+        }
+
         return view('admin.pedidos.pendientes', compact('transferencias'));
     }
 

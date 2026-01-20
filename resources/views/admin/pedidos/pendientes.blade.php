@@ -27,6 +27,7 @@
                                     <th>Fecha transferencia</th>
                                     <th>Visitador</th>
                                     <th>Cliente</th>
+                                    <th>Droguería</th>
                                     <th>Productos (pendientes)</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -38,6 +39,7 @@
                                         <td>{{ optional($transferencia->fecha_transferencia)->format('d/m/Y') }}</td>
                                         <td>{{ optional($transferencia->visitador)->nombre }}</td>
                                         <td>{{ optional($transferencia->cliente)->nombre_cliente }}</td>
+                                        <td>{{ $transferencia->drogueria_nombre ?? '' }}</td>
                                         <td>
                                             <ul class="mb-0">
                                                 @foreach($transferencia->pedidos->where('estado', 'pendiente') as $pedido)
