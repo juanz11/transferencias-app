@@ -17,6 +17,7 @@
                             @if(request()->has('visitador_id') && !is_null(request()->get('visitador_id')))
                                 <button id="enviarEmail" class="btn btn-primary me-2">Enviar por Email</button>
                             @endif
+                            <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'excel'])) }}" class="btn btn-success me-2">Descargar Excel</a>
                             <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'pdf'])) }}" class="btn btn-secondary me-2">Descargar PDF Completo</a>
                             <a href="{{ route('pedidos.reporte', array_merge(request()->all(), ['formato' => 'resumen_pdf'])) }}" class="btn btn-outline-secondary me-2">PDF Resumen por Visitador</a>
                             <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">Volver</a>
@@ -33,6 +34,7 @@
                                     <th>Fecha Transferencia</th>
                                     <th>Fecha Confirmación</th>
                                     <th>Visitador</th>
+                                    <th>Farmacia</th>
                                     <th>Droguería</th>
                                     <th>Producto</th>
                                     <th>Cantidad</th>
@@ -48,6 +50,7 @@
                                             <td>{{ $pedido['fecha_transferencia']->format('d/m/Y') }}</td>
                                             <td>{{ $pedido['fecha_confirmacion']->format('d/m/Y') }}</td>
                                             <td>{{ $pedido['visitador'] }}</td>
+                                            <td>{{ $pedido['farmacia'] ?? '-' }}</td>
                                             <td>{{ $pedido['drogueria'] }}</td>
                                             <td>{{ $pedido['producto'] }}</td>
                                             <td><strong>{{ $pedido['cantidad'] }}</strong></td>
@@ -65,17 +68,18 @@
                                 @else
                                     @foreach($pedidos as $pedido)
                                         <tr>
-                                            <td>{{ $pedido->transferenciaConfirmada->transferencia->fecha_transferencia->format('d/m/Y') }}</td>
-                                            <td>{{ $pedido->transferenciaConfirmada->created_at->format('d/m/Y') }}</td>
-                                            <td>{{ $pedido->transferenciaConfirmada->transferencia->visitador->nombre }}</td>
-                                            <td>{{ \App\Models\Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre }}</td>
-                                            <td>{{ $pedido->producto->nombre }}</td>
+                                            <td>{{ optional(optional(optional($pedido->transferenciaConfirmada)->transferencia)->fecha_transferencia)->format('d/m/Y') ?? '-' }}</td>
+                                            <td>{{ optional(optional($pedido->transferenciaConfirmada)->created_at)->format('d/m/Y') ?? '-' }}</td>
+                                            <td>{{ optional(optional(optional($pedido->transferenciaConfirmada)->transferencia)->visitador)->nombre ?? '-' }}</td>
+                                            <td>{{ optional(optional(optional($pedido->transferenciaConfirmada)->transferencia)->cliente)->nombre_cliente ?? '-' }}</td>
+                                            <td>{{ optional(optional(optional(optional($pedido->transferenciaConfirmada)->transferencia)->cliente)->drogueria)->nombre ?? (optional(\App\Models\Drogeria::find(optional(optional(optional($pedido->transferenciaConfirmada)->transferencia)->cliente)->drogueria))->nombre ?? '-') }}</td>
+                                            <td>{{ optional($pedido->producto)->nombre ?? '-' }}</td>
                                             <td>{{ $pedido->cantidad }}</td>
                                             <td>{{ $pedido->descuento }}%</td>
-                                            <td>{{ $pedido->transferenciaConfirmada->transferencia->transferencia_numero }}</td>
+                                            <td>{{ optional(optional($pedido->transferenciaConfirmada)->transferencia)->transferencia_numero ?? '-' }}</td>
                                             <td>
                                                 @php
-                                                    $ganancia = $pedido->cantidad * $pedido->producto->comision;
+                                                    $ganancia = $pedido->cantidad * ($pedido->producto->comision ?? 0);
                                                 @endphp
                                                 ${{ number_format($ganancia, 2) }}
                                             </td>
@@ -145,7 +149,8 @@
 
 @push('scripts')
 <script>
-document.getElementById('enviarEmail').addEventListener('click', function() {
+const enviarEmailBtn = document.getElementById('enviarEmail');
+if (enviarEmailBtn) enviarEmailBtn.addEventListener('click', function() {
     // Obtener los parámetros de los campos ocultos
     const visitador = document.getElementById('currentVisitador').value;
     const fechaInicio = document.getElementById('currentFechaInicio').value;

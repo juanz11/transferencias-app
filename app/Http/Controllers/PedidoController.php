@@ -458,17 +458,30 @@ class PedidoController extends Controller
         if ($tipoVista === 'agrupado') {
             $pedidosAgrupados = [];
             foreach ($pedidos->sortBy('producto_id') as $pedido) {
+                $transferencia = optional(optional($pedido->transferenciaConfirmada)->transferencia);
+                $cliente = optional($transferencia)->cliente;
+                $clienteNombre = optional($cliente)->nombre_cliente ?? 'Sin Cliente';
+
+                $drogueriaNombre = '';
+                if ($cliente && $cliente->drogueria) {
+                    $drogueriaNombre = Drogeria::find($cliente->drogueria)->nombre ?? '';
+                }
+
+                $visitadorNombre = optional($transferencia->visitador)->nombre ?? '';
+                $fechaTransferencia = $transferencia->fecha_transferencia;
                 $key = $pedido->producto->nombre . '-' . 
-                       $pedido->transferenciaConfirmada->transferencia->visitador->nombre . '-' .
-                       Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre . '-' .
-                       $pedido->transferenciaConfirmada->transferencia->fecha_transferencia->format('Y-m-d');
+                       $visitadorNombre . '-' .
+                       $clienteNombre . '-' .
+                       $drogueriaNombre . '-' .
+                       (optional($fechaTransferencia)->format('Y-m-d') ?? '');
 
                 if (!isset($pedidosAgrupados[$key])) {
                     $pedidosAgrupados[$key] = [
-                        'fecha_transferencia' => $pedido->transferenciaConfirmada->transferencia->fecha_transferencia,
-                        'fecha_confirmacion' => $pedido->transferenciaConfirmada->created_at,
-                        'visitador' => $pedido->transferenciaConfirmada->transferencia->visitador->nombre,
-                        'drogueria' => Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre,
+                        'fecha_transferencia' => $fechaTransferencia,
+                        'fecha_confirmacion' => optional($pedido->transferenciaConfirmada)->created_at,
+                        'visitador' => $visitadorNombre,
+                        'farmacia' => $clienteNombre,
+                        'drogueria' => $drogueriaNombre,
                         'producto' => $pedido->producto->nombre,
                         'cantidad' => 0,
                         'descuento' => $pedido->descuento,
@@ -477,9 +490,9 @@ class PedidoController extends Controller
                 }
 
                 $pedidosAgrupados[$key]['cantidad'] += $pedido->cantidad;
-                $transferencia = $pedido->transferenciaConfirmada->transferencia->transferencia_numero;
-                if (!str_contains($pedidosAgrupados[$key]['transferencias'], $transferencia)) {
-                    $pedidosAgrupados[$key]['transferencias'] .= ($pedidosAgrupados[$key]['transferencias'] ? ', ' : '') . $transferencia;
+                $transferenciaNumero = $transferencia->transferencia_numero;
+                if ($transferenciaNumero && !str_contains($pedidosAgrupados[$key]['transferencias'], $transferenciaNumero)) {
+                    $pedidosAgrupados[$key]['transferencias'] .= ($pedidosAgrupados[$key]['transferencias'] ? ', ' : '') . $transferenciaNumero;
                 }
             }
 
@@ -489,8 +502,9 @@ class PedidoController extends Controller
         // Preparar resumen por visitador
         $resumenVisitador = [];
         foreach ($pedidos->sortBy('producto_id') as $pedido) {
-            $visitadorNombre = $pedido->transferenciaConfirmada->transferencia->visitador->nombre;
-            $productoNombre = $pedido->producto->nombre;
+            $transferencia = optional(optional($pedido->transferenciaConfirmada)->transferencia);
+            $visitadorNombre = optional($transferencia->visitador)->nombre ?? 'Sin Visitador';
+            $productoNombre = optional($pedido->producto)->nombre ?? 'Sin Producto';
 
             if (!isset($resumenVisitador[$visitadorNombre])) {
                 $resumenVisitador[$visitadorNombre] = [
@@ -518,6 +532,115 @@ class PedidoController extends Controller
 
         $data['resumenVisitador'] = array_values($resumenVisitador);
         $data['totalProductos'] = array_sum(array_column($data['resumenVisitador'], 'total_visitador'));
+
+        if ($request->input('formato') === 'excel') {
+            $rows = [];
+            $headers = [
+                'Fecha Transferencia',
+                'Fecha Confirmación',
+                'Visitador',
+                'Farmacia',
+                'Droguería',
+                'Producto',
+                'Cantidad',
+                'Descuento',
+                'N° Transferencia',
+                'Ganancia',
+            ];
+
+            $rows[] = $headers;
+
+            if ($tipoVista === 'agrupado') {
+                $productosNombres = collect($data['pedidosAgrupados'] ?? [])->pluck('producto')->unique()->values();
+                $comisionPorProducto = Producto::whereIn('nombre', $productosNombres)
+                    ->get()
+                    ->keyBy('nombre')
+                    ->map(function ($p) {
+                        return $p->comision;
+                    });
+
+                foreach (($data['pedidosAgrupados'] ?? []) as $pedido) {
+                    $comision = $comisionPorProducto[$pedido['producto']] ?? 0;
+                    $ganancia = ((int) $pedido['cantidad']) * ((float) $comision);
+                    $rows[] = [
+                        $pedido['fecha_transferencia'] ? $pedido['fecha_transferencia']->format('d/m/Y') : '',
+                        $pedido['fecha_confirmacion'] ? $pedido['fecha_confirmacion']->format('d/m/Y') : '',
+                        $pedido['visitador'] ?? '',
+                        $pedido['farmacia'] ?? '',
+                        $pedido['drogueria'] ?? '',
+                        $pedido['producto'] ?? '',
+                        $pedido['cantidad'] ?? 0,
+                        ($pedido['descuento'] ?? 0) . '%',
+                        $pedido['transferencias'] ?? '',
+                        number_format($ganancia, 2, '.', ''),
+                    ];
+                }
+            } else {
+                $pedidosConRelaciones = PedidoConfirmado::with([
+                    'transferenciaConfirmada.transferencia.visitador',
+                    'transferenciaConfirmada.transferencia.cliente.drogueria',
+                    'producto'
+                ])->whereIn('id', $pedidos->pluck('id')->all())->get();
+
+                foreach ($pedidosConRelaciones as $pedido) {
+                    $transferencia = optional(optional($pedido->transferenciaConfirmada)->transferencia);
+                    $cliente = optional($transferencia)->cliente;
+                    $clienteNombre = optional($cliente)->nombre_cliente ?? 'Sin Cliente';
+                    $drogueriaNombre = '';
+                    if ($cliente && $cliente->drogueria) {
+                        $drogueriaNombre = Drogeria::find($cliente->drogueria)->nombre ?? '';
+                    }
+                    $ganancia = ((int) $pedido->cantidad) * ((float) ($pedido->producto->comision ?? 0));
+                    $rows[] = [
+                        $transferencia->fecha_transferencia ? $transferencia->fecha_transferencia->format('d/m/Y') : '',
+                        optional($pedido->transferenciaConfirmada)->created_at ? optional($pedido->transferenciaConfirmada)->created_at->format('d/m/Y') : '',
+                        optional($transferencia->visitador)->nombre ?? '',
+                        $clienteNombre,
+                        $drogueriaNombre,
+                        $pedido->producto->nombre ?? '',
+                        $pedido->cantidad ?? 0,
+                        ($pedido->descuento ?? 0) . '%',
+                        $transferencia->transferencia_numero ?? '',
+                        number_format($ganancia, 2, '.', ''),
+                    ];
+                }
+            }
+
+            $escapeHtml = function ($value) {
+                return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            };
+
+            $html = '<!doctype html><html><head><meta charset="utf-8">';
+            $html .= '<style>';
+            $html .= 'table{border-collapse:collapse;font-family:Arial, sans-serif;font-size:12px;}';
+            $html .= 'th,td{border:1px solid #999;padding:6px;vertical-align:top;}';
+            $html .= 'th{background:#f2f2f2;font-weight:bold;text-align:left;}';
+            $html .= '.num{text-align:right;}';
+            $html .= '</style></head><body>';
+            $html .= '<table><thead><tr>';
+            foreach ($headers as $h) {
+                $html .= '<th>' . $escapeHtml($h) . '</th>';
+            }
+            $html .= '</tr></thead><tbody>';
+
+            foreach (array_slice($rows, 1) as $row) {
+                $html .= '<tr>';
+                foreach ($row as $index => $cell) {
+                    $isNumericCol = in_array($index, [6, 9], true);
+                    $class = $isNumericCol ? ' class="num"' : '';
+                    $html .= '<td' . $class . '>' . $escapeHtml($cell) . '</td>';
+                }
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table></body></html>';
+
+            $filename = 'reporte-pedidos-' . date('Y-m-d-His') . '.xls';
+            return response($html, 200, [
+                'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]);
+        }
 
         // Si se solicita formato PDF, generar y devolver el PDF
         if ($request->input('formato') === 'resumen_pdf') {
