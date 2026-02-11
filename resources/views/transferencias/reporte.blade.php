@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@php
+use Carbon\Carbon;
+@endphp
 
 @section('content')
 <div class="container">
@@ -19,32 +22,26 @@
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Visitador</th>
+                                    <th>Farmacia</th>
+                                    <th>Droguería</th>
                                     <th>Número de Transferencia</th>
                                     <th>Estado</th>
-                                    <th>Factura</th>
+                                    <th>Fecha Confirmación</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($transferencias as $transferencia)
                                     <tr>
-                                        <td>{{ $transferencia->fecha_transferencia->format('d/m/Y') }}</td>
+                                        <td>{{ date('d/m/Y', strtotime($transferencia->fecha_transferencia)) }}</td>
                                         <td>{{ $transferencia->visitador->nombre }}</td>
+                                        <td>{{ optional($transferencia->cliente)->nombre_cliente }}</td>
+                                        <td>{{ $transferencia->drogueria_nombre ?? '' }}</td>
                                         <td>{{ $transferencia->transferencia_numero }}</td>
                                         <td>
-                                            @if($transferencia->confirmada)
-                                                <span class="badge bg-success">Confirmada</span>
-                                            @else
-                                                <span class="badge bg-warning">No Confirmada</span>
-                                            @endif
+                                            <span class="badge bg-success">Confirmada</span>
                                         </td>
                                         <td>
-                                            @if($transferencia->factura_path)
-                                                <a href="{{ asset($transferencia->factura_path) }}" target="_blank" class="btn btn-sm btn-info">
-                                                    Ver Factura
-                                                </a>
-                                            @else
-                                                <span class="text-muted">Sin factura</span>
-                                            @endif
+                                            {{ date('d/m/Y H:i', strtotime($transferencia->fecha_confirmacion)) }}
                                         </td>
                                     </tr>
                                 @endforeach

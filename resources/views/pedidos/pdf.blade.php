@@ -47,6 +47,7 @@
                 <th>Fecha Transferencia</th>
                 <th>Fecha Confirmación</th>
                 <th>Visitador</th>
+                <th>Droguería</th>
                 <th>Producto</th>
                 <th>Cantidad</th>
                 <th>Descuento</th>
@@ -61,6 +62,7 @@
                         <td>{{ $pedido['fecha_transferencia']->format('d/m/Y') }}</td>
                         <td>{{ $pedido['fecha_confirmacion']->format('d/m/Y') }}</td>
                         <td>{{ $pedido['visitador'] }}</td>
+                        <td>{{ $pedido['drogueria'] }}</td>
                         <td>{{ $pedido['producto'] }}</td>
                         <td><strong>{{ $pedido['cantidad'] }}</strong></td>
                         <td>{{ $pedido['descuento'] }}%</td>
@@ -80,6 +82,7 @@
                         <td>{{ $pedido->transferenciaConfirmada->transferencia->fecha_transferencia->format('d/m/Y') }}</td>
                         <td>{{ $pedido->transferenciaConfirmada->created_at->format('d/m/Y') }}</td>
                         <td>{{ $pedido->transferenciaConfirmada->transferencia->visitador->nombre }}</td>
+                        <td>{{ \App\Models\Drogeria::findOrFail($pedido->transferenciaConfirmada->transferencia->cliente->drogueria)->nombre }}</td>
                         <td>{{ $pedido->producto->nombre }}</td>
                         <td>{{ $pedido->cantidad }}</td>
                         <td>{{ $pedido->descuento }}%</td>

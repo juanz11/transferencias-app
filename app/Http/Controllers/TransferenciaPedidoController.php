@@ -9,7 +9,9 @@ use App\Models\Visitador;
 use App\Models\Transferencia;
 use App\Models\TransferenciaConfirmada as TransferenciaConfirmadaModel;
 use App\Models\PedidoConfirmado;
+use App\Models\Pedido;
 use App\Models\Drogeria;
+use App\Models\DiscountRule;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +36,7 @@ class TransferenciaPedidoController extends Controller
             'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
             'fecha_correo' => 'required|date',
             'fecha_transferencia' => 'required|date',
-            'transferencia_numero' => 'required|string|unique:transferencias,transferencia_numero',
+            'transferencia_numero' => 'required|integer|unique:transferencias,transferencia_numero',
             'productos' => 'required|array',
             'productos.*.id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|numeric|min:1',
@@ -71,6 +73,15 @@ class TransferenciaPedidoController extends Controller
             foreach ($request->productos as $productoData) {
                 $producto = Producto::findOrFail($productoData['id']);
                 
+                // Registrar también en la tabla pedidos con estado aprobado
+                Pedido::create([
+                    'transferencia_id' => $transferencia->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $productoData['cantidad'],
+                    'descuento' => $productoData['descuento'] ?? 0,
+                    'estado' => 'aprobado',
+                ]);
+
                 $pedidoConfirmado = new PedidoConfirmado([
                     'transferencia_confirmada_id' => $transferenciaConfirmada->id,
                     'producto_id' => $producto->id,
@@ -87,20 +98,32 @@ class TransferenciaPedidoController extends Controller
                 ];
             }
 
-            // Enviar el email al visitador y a todos los usuarios
+            // Enviar el email solo al visitador del pedido y a los usuarios con rol admin
             $recipients = collect();
-            
+
             // Agregar el email del visitador si existe
+            \Log::info('Email del visitador: ' . ($visitador->email ?? 'No tiene email'));
             if ($visitador->email) {
                 $recipients->push($visitador->email);
             }
-            
-            // Agregar los emails de todos los usuarios
-            $userEmails = User::whereNotNull('email')->pluck('email');
-            $recipients = $recipients->merge($userEmails)->unique();
-            
+
+            // Agregar los emails de los usuarios administradores
+            $adminEmails = User::where('rol', 'admin')
+                ->whereNotNull('email')
+                ->pluck('email');
+            \Log::info('Emails de usuarios administradores encontrados: ' . $adminEmails->join(', '));
+
+            $recipients = $recipients->merge($adminEmails)->unique();
+            \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
+
             // Enviar el correo a todos los destinatarios
-            Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
+            try {
+                \Log::info('Intentando enviar correo a: ' . $recipients->join(', '));
+                Mail::to($recipients)->send(new TransferenciaConfirmada($transferenciaConfirmada, $calculos, $drogueria));
+            } catch (\Exception $mailError) {
+                // Registrar el error pero no interrumpir la creación del pedido
+                \Log::error('Error al enviar correo: ' . $mailError->getMessage());
+            }
 
             DB::commit();
             return redirect()->route('transferencias.index')
@@ -111,6 +134,110 @@ class TransferenciaPedidoController extends Controller
             return back()
                 ->withInput()
                 ->with('error', 'Error al crear el pedido: ' . $e->getMessage());
+        }
+    }
+
+    public function createVisitador()
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'visitador') {
+            return redirect()->route('visitador.home');
+        }
+
+        $userEmail = auth()->user()->email;
+        $visitador = Visitador::where('email', $userEmail)->firstOrFail();
+        $clientes = Cliente::all();
+        $clientesJs = $clientes->map(function ($cliente) {
+            return [
+                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
+                'value' => $cliente->codigo_cliente,
+                'nombre' => $cliente->nombre_cliente,
+                'drogueria' => $cliente->drogueria,
+            ];
+        });
+        $productos = Producto::all();
+        $usados = Transferencia::whereNotNull('transferencia_numero')
+            ->whereBetween('transferencia_numero', [8501, 9000])
+            ->pluck('transferencia_numero')
+            ->map(fn($n) => (int) $n)
+            ->toArray();
+
+        $numerosDisponibles = [];
+        for ($i = 8501; $i <= 9000; $i++) {
+            if (!in_array($i, $usados)) {
+                $numerosDisponibles[] = $i;
+            }
+        }
+
+        $discountRules = DiscountRule::active()
+            ->get([
+                'producto_id',
+                'drogueria_id',
+                'min_qty_low',
+                'pct_low',
+                'min_qty_mid',
+                'pct_mid',
+                'min_qty_high',
+                'pct_high',
+            ]);
+
+        return view('visitor.pedidos.create', compact('visitador', 'clientes', 'clientesJs', 'productos', 'numerosDisponibles', 'discountRules'));
+    }
+
+    public function storeVisitador(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'visitador') {
+            return redirect()->route('visitador.home');
+        }
+
+        $request->validate([
+            'codigo_cliente' => 'required|exists:clientes,codigo_cliente',
+            'fecha_correo' => 'required|date',
+            'fecha_transferencia' => 'required|date',
+            'transferencia_numero' => 'required|integer|min:8501|max:9000|unique:transferencias,transferencia_numero',
+            'productos' => 'required|array',
+            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.cantidad' => 'required|numeric|min:1',
+            'productos.*.descuento' => 'nullable|numeric|min:0'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $userEmail = auth()->user()->email;
+            $visitador = Visitador::where('email', $userEmail)->firstOrFail();
+            $cliente = Cliente::where('codigo_cliente', $request->codigo_cliente)->firstOrFail();
+
+            $transferencia = new Transferencia([
+                'user_id' => auth()->id(),
+                'visitador_id' => $visitador->id,
+                'cliente_id' => $cliente->id,
+                'fecha_correo' => $request->fecha_correo,
+                'fecha_transferencia' => $request->fecha_transferencia,
+                'transferencia_numero' => $request->transferencia_numero,
+                'confirmada' => false
+            ]);
+            $transferencia->save();
+
+            foreach ($request->productos as $productoData) {
+                $producto = Producto::findOrFail($productoData['id']);
+
+                \App\Models\Pedido::create([
+                    'transferencia_id' => $transferencia->id,
+                    'producto_id' => $producto->id,
+                    'cantidad' => $productoData['cantidad'],
+                    'descuento' => $productoData['descuento'] ?? 0,
+                    'estado' => 'pendiente'
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('visitador.pedidos.reporte')
+                ->with('success', 'Pedido registrado en estado pendiente correctamente');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()
+                ->withInput()
+                ->with('error', 'Error al registrar el pedido: ' . $e->getMessage());
         }
     }
 }

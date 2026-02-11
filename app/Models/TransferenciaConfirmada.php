@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Transferencia;
+use App\Models\PedidoConfirmado;
 
 class TransferenciaConfirmada extends Model
 {
@@ -17,5 +19,10 @@ class TransferenciaConfirmada extends Model
     public function transferencia()
     {
         return $this->belongsTo(Transferencia::class, 'transferencia_id');
+    }
+
+    public function pedidosConfirmados()
+    {
+        return $this->hasMany(PedidoConfirmado::class);
     }
 }

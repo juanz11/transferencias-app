@@ -1,0 +1,637 @@
+@extends('layouts.app')
+
+@section('styles')
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 1000;
+        background: white !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 0.375rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .ui-menu-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+        background: white !important;
+    }
+
+    .ui-menu-item:hover {
+        background-color: #f8f9fa !important;
+        cursor: pointer;
+    }
+
+    .ui-state-active,
+    .ui-widget-content .ui-state-active {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+
+    .ui-menu {
+        padding: 0 !important;
+        border: none !important;
+        background: white !important;
+    }
+
+    .ui-widget.ui-widget-content {
+        border: 1px solid #ced4da;
+    }
+
+    .cliente-input {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+
+    .cliente-input:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-lg card-custom-bg">
+                <div class="card-body p-4">
+                    @if(session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('visitador.pedidos.store') }}" method="POST" id="pedidoForm">
+                        @csrf
+
+                        <div class="mb-4">
+                            <h5 class="mb-1">Visitador</h5>
+                            <p class="mb-0"><strong>{{ $visitador->nombre }}</strong> ({{ $visitador->email }})</p>
+                        </div>
+
+                        <input type="hidden" name="fecha_correo" id="fecha_correo" value="{{ date('Y-m-d') }}">
+                        <input type="hidden" name="fecha_transferencia" id="fecha_transferencia" value="{{ date('Y-m-d') }}">
+
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label for="transferencia_numero" class="form-label">Número de Transferencia</label>
+                                <select name="transferencia_numero" id="transferencia_numero"
+                                        class="form-select @error('transferencia_numero') is-invalid @enderror" required>
+                                    <option value="">Seleccione un número</option>
+                                    @php $oldNumero = old('transferencia_numero'); @endphp
+                                    @foreach($numerosDisponibles as $index => $numero)
+                                        <option value="{{ $numero }}"
+                                            {{ $oldNumero ? ($oldNumero == $numero ? 'selected' : '') : ($index === 0 ? 'selected' : '') }}>
+                                            {{ $numero }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('transferencia_numero')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-center d-block fw-bold">Código Cliente</label>
+                            <div class="input-group input-group-lg justify-content-center">
+                                <span class="input-group-text bg-warning text-dark">
+                                    <i class="fas fa-hashtag"></i>
+                                </span>
+                                <input type="text" class="form-control cliente-input @error('codigo_cliente') is-invalid @enderror"
+                                       placeholder="Buscar cliente por nombre o código"
+                                       required
+                                       autocomplete="off">
+                                <input type="hidden" name="codigo_cliente" class="codigo-cliente-hidden" value="{{ old('codigo_cliente') }}">
+                                @error('codigo_cliente')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Productos</h5>
+                            <button type="button" class="btn btn-primary btn-sm" id="add-producto">Agregar producto</button>
+                        </div>
+
+                        <div id="productos-list" class="row g-3">
+                            @if(old('productos'))
+                                @foreach(old('productos') as $key => $oldProducto)
+                                    <div class="col-12 col-md-6 col-lg-4 producto-item">
+                                        <div class="card h-100 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h6 class="mb-0">Producto</h6>
+                                                    <button type="button" class="btn btn-danger btn-sm remove-producto" {{ $key == 0 ? 'disabled' : '' }}>X</button>
+                                                </div>
+                                                <select name="productos[{{ $key }}][id]" class="form-select mb-3 @error('productos.'.$key.'.id') is-invalid @enderror" required>
+                                                    <option value="">Seleccione un producto</option>
+                                                    @foreach($productos as $producto)
+                                                        <option value="{{ $producto->id }}" {{ $oldProducto['id'] == $producto->id ? 'selected' : '' }}>
+                                                            {{ $producto->nombre }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('productos.'.$key.'.id')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">Des (%)</span>
+                                                    <input type="number" name="productos[{{ $key }}][descuento]"
+                                                           class="form-control @error('productos.'.$key.'.descuento') is-invalid @enderror"
+                                                           value="{{ $oldProducto['descuento'] }}" placeholder="%" step="0.01" min="0" readonly>
+                                                    @error('productos.'.$key.'.descuento')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Unds</span>
+                                                    <input type="number" name="productos[{{ $key }}][cantidad]"
+                                                           class="form-control @error('productos.'.$key.'.cantidad') is-invalid @enderror"
+                                                           value="{{ $oldProducto['cantidad'] }}" placeholder="Cantidad" required min="1">
+                                                    @error('productos.'.$key.'.cantidad')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="col-12 col-md-6 col-lg-4 producto-item">
+                                    <div class="card h-100 shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h6 class="mb-0">Producto</h6>
+                                                <button type="button" class="btn btn-danger btn-sm remove-producto" disabled>X</button>
+                                            </div>
+                                            <select name="productos[0][id]" class="form-select mb-3" required>
+                                                <option value="">Seleccione un producto</option>
+                                                @foreach($productos as $producto)
+                                                    <option value="{{ $producto->id }}">{{ $producto->nombre }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text">Des (%)</span>
+                                                <input type="number" name="productos[0][descuento]" class="form-control" placeholder="%" step="0.01" min="0" value="0" readonly>
+                                            </div>
+                                            <div class="input-group">
+                                                <span class="input-group-text">Unds</span>
+                                                <input type="number" name="productos[0][cantidad]" class="form-control" placeholder="Cantidad" required min="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary px-5">Guardar como pendiente</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productosContainer = document.getElementById('productos-list');
+        const addProductoBtn = document.getElementById('add-producto');
+        let productoCount = {{ old('productos') ? count(old('productos')) : 1 }};
+        let currentDrogueriaId = null; // Droguería del cliente seleccionado (si aplica)
+
+        const discountRules = @json($discountRules ?? []);
+
+        function initializeSelect2(element) {
+            if (!$(element).data('select2')) {
+                $(element).select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Seleccione un producto',
+                    allowClear: true
+                });
+            }
+        }
+
+        document.querySelectorAll('#productos-list .producto-item select.form-select').forEach(function(select) {
+            initializeSelect2(select);
+        });
+
+        const reglasDescuento = {
+            16: function(cantidad) { // BROPAX 6 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty <= 7) return 4;
+                if (qty >= 8 && qty <= 11) return 6;
+                return 8; // 12 o más
+            },
+            13: function(cantidad) { // DOZHER 10 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            31: function(cantidad) { // ERONE 25 mg 30 comp
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            20: function(cantidad) { // Producto ID 20
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            22: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             23: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            14: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 2 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            14: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 8 && qty < 12) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            8: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             9: function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+              4 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 5) return 0;
+                if (qty >= 5 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+            5 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+              21 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             25 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+
+             26 : function(cantidad) { // Producto ID 22
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             30 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                19 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                10 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               15 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 4) return 0;
+                if (qty >= 4 && qty < 8) return 4; // 2 y 3
+                if (qty >= 8 && qty < 10) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             7 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+             28 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               11 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 3) return 0;
+                if (qty >= 3 && qty < 5) return 4; // 2 y 3
+                if (qty >= 5 && qty < 7) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                11 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+               33 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                  33 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            },
+                 32 : function(cantidad) { // Producto ID 30
+                const qty = parseInt(cantidad, 10) || 0;
+                if (qty < 2) return 0;
+                if (qty >= 2 && qty < 4) return 4; // 2 y 3
+                if (qty >= 4 && qty < 6) return 6; // 4 y 5
+                return 8; // 6 o más
+            }
+
+
+
+        };
+
+        function calcularDescuentoDesdeRegla(regla, cantidad) {
+            const qty = parseInt(cantidad, 10) || 0;
+
+            const minLow = parseInt(regla.min_qty_low, 10) || 0;
+            const minMid = parseInt(regla.min_qty_mid, 10) || 0;
+            const minHigh = parseInt(regla.min_qty_high, 10) || 0;
+
+            const pctLow = parseFloat(regla.pct_low) || 0;
+            const pctMid = parseFloat(regla.pct_mid) || 0;
+            const pctHigh = parseFloat(regla.pct_high) || 0;
+
+            if (qty < minLow) return 0;
+            if (qty >= minHigh) return pctHigh;
+            if (qty >= minMid) return pctMid;
+            return pctLow;
+        }
+
+        function buscarReglaBD(productoId) {
+            if (!Array.isArray(discountRules) || discountRules.length === 0) return null;
+
+            const drogueriaId = (currentDrogueriaId === null || currentDrogueriaId === undefined)
+                ? null
+                : parseInt(currentDrogueriaId, 10);
+
+            const pid = parseInt(productoId, 10);
+
+            let especifica = null;
+            if (drogueriaId !== null && !Number.isNaN(drogueriaId)) {
+                especifica = discountRules.find(r => parseInt(r.producto_id, 10) === pid && parseInt(r.drogueria_id, 10) === drogueriaId);
+            }
+
+            if (especifica) return especifica;
+
+            const global = discountRules.find(r => parseInt(r.producto_id, 10) === pid && (r.drogueria_id === null || r.drogueria_id === undefined));
+            return global || null;
+        }
+
+        function calcularDescuento(productoId, cantidad) {
+            const reglaBD = buscarReglaBD(productoId);
+            if (reglaBD) {
+                return calcularDescuentoDesdeRegla(reglaBD, cantidad);
+            }
+
+            return 0;
+        }
+
+        function configurarDescuentoAutomatico(productoItem) {
+            if (!productoItem) return;
+
+            const selectProducto = productoItem.querySelector('select.form-select');
+            const inputCantidad = productoItem.querySelector('input[name$="[cantidad]"]');
+            const inputDescuento = productoItem.querySelector('input[name$="[descuento]"]');
+
+            if (!selectProducto || !inputCantidad || !inputDescuento) return;
+
+            function actualizarDescuento() {
+                const productoId = parseInt(selectProducto.value, 10);
+                const cantidad = inputCantidad.value;
+
+                const descuento = calcularDescuento(productoId, cantidad);
+                inputDescuento.value = descuento;
+            }
+
+            // Al cambiar de producto reiniciamos cantidad (0) y descuento (0) y limpiamos estados
+            selectProducto.addEventListener('change', function() {
+                // Reset de valores
+                inputCantidad.value = 0;
+                inputDescuento.value = 0;
+
+                // Limpiar clases de error
+                inputCantidad.classList.remove('is-invalid');
+                inputDescuento.classList.remove('is-invalid');
+
+                // Si hay mensajes de error justo después de los inputs, los dejamos como están
+                // y que el backend los vuelva a marcar si hace falta en el próximo submit.
+
+                // Recalcular por si la regla depende del 0 (normalmente quedará en 0)
+                actualizarDescuento();
+            });
+            // Recalcular descuento al modificar unidades (teclado o flechas)
+            inputCantidad.addEventListener('input', actualizarDescuento);
+            inputCantidad.addEventListener('change', actualizarDescuento);
+
+            // Inicializar descuento según el valor actual (por si viene de old())
+            actualizarDescuento();
+        }
+
+        // Configurar descuento automático en las filas existentes
+        document.querySelectorAll('#productos-list .producto-item').forEach(function(item) {
+            configurarDescuentoAutomatico(item);
+        });
+
+        addProductoBtn.addEventListener('click', function() {
+            const baseItem = document.querySelector('.producto-item');
+            if (!baseItem) return;
+
+            const baseSelect = baseItem.querySelector('select.form-select');
+            if (baseSelect && $(baseSelect).data('select2')) {
+                $(baseSelect).select2('destroy');
+            }
+
+            baseItem.querySelectorAll('.select2, .select2-container').forEach(el => el.remove());
+
+            const template = baseItem.cloneNode(true);
+
+            template.querySelectorAll('select, input').forEach(input => {
+                if (input.name) {
+                    input.name = input.name.replace(/\[\d+\]/, '[' + productoCount + ']');
+                }
+                if (input.type !== 'button') {
+                    // Inicializamos cantidad vacía y descuento en 0
+                    if (input.name.endsWith('[descuento]')) {
+                        input.value = 0;
+                    } else {
+                        input.value = '';
+                    }
+                    input.classList.remove('is-invalid');
+                }
+                const feedback = input.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.remove();
+                }
+            });
+
+            const removeBtn = template.querySelector('.remove-producto');
+            if (removeBtn) {
+                removeBtn.disabled = false;
+            }
+
+            productosContainer.appendChild(template);
+
+            const newSelect = template.querySelector('select.form-select');
+            if (newSelect) {
+                initializeSelect2(newSelect);
+            }
+
+            if (baseSelect) {
+                initializeSelect2(baseSelect);
+            }
+
+            productoCount++;
+
+            // Configurar descuento automático para la nueva fila
+            configurarDescuentoAutomatico(template);
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    const select = this.closest('.producto-item').querySelector('select.form-select');
+                    if (select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
+                    this.closest('.producto-item').remove();
+                });
+            }
+        });
+
+        document.querySelectorAll('.remove-producto').forEach(button => {
+            if (!button.disabled) {
+                button.addEventListener('click', function() {
+                    const select = this.closest('.producto-item').querySelector('select.form-select');
+                    if (select && $(select).data('select2')) {
+                        $(select).select2('destroy');
+                    }
+                    this.closest('.producto-item').remove();
+                });
+            }
+        });
+
+        const clientes = @json($clientesJs);
+
+        // Si viene un cliente precargado (old), inicializamos la droguería actual
+        const codigoInicial = $('.codigo-cliente-hidden').val();
+        if (codigoInicial) {
+            const clienteInicial = clientes.find(c => c.value === codigoInicial);
+            if (clienteInicial) {
+                currentDrogueriaId = clienteInicial.drogueria;
+            }
+        }
+
+        $('.cliente-input').autocomplete({
+            source: clientes,
+            minLength: 2,
+            select: function(event, ui) {
+                event.preventDefault();
+                $(this).val(ui.item.label);
+                $('.codigo-cliente-hidden').val(ui.item.value);
+                currentDrogueriaId = ui.item.drogueria;
+            }
+        }).autocomplete('instance')._renderItem = function(ul, item) {
+            return $('<li>')
+                .append('<div>' + item.nombre + '<br><small class="text-muted">' + item.value + '</small></div>')
+                .appendTo(ul);
+        };
+    });
+</script>
+@endpush
