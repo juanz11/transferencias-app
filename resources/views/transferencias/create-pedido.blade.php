@@ -297,7 +297,7 @@
                                     @error('transferencia_numero')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
-                                        <div class="form-text small">Ingrese un número único entre 8501 y 9000 que no esté usado.</div>
+                                        <div class="form-text small">Ingrese un número único entre 8501 y 10000 que no esté usado.</div>
                                     @enderror
                                 </div>
                             </div>
