@@ -140,6 +140,46 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Resumen por Productos -->
+                    <h4 class="mb-3 mt-5">Resumen por Productos</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad Total</th>
+                                    <th class="text-end">Comisión Unitaria</th>
+                                    <th class="text-end">Ganancia Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $totalCantidadProductos = 0;
+                                    $totalGananciaProductos = 0;
+                                @endphp
+                                @foreach($resumenProductos as $producto)
+                                    @php
+                                        $ganancia = $producto['cantidad'] * $producto['comision_unitaria'];
+                                        $totalCantidadProductos += $producto['cantidad'];
+                                        $totalGananciaProductos += $ganancia;
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $producto['producto'] }}</td>
+                                        <td class="text-center"><strong>{{ number_format($producto['cantidad'], 0) }}</strong></td>
+                                        <td class="text-end">${{ number_format($producto['comision_unitaria'], 2) }}</td>
+                                        <td class="text-end"><strong>${{ number_format($ganancia, 2) }}</strong></td>
+                                    </tr>
+                                @endforeach
+                                <tr class="table-success fw-bold">
+                                    <td>TOTAL</td>
+                                    <td class="text-center">{{ number_format($totalCantidadProductos, 0) }}</td>
+                                    <td></td>
+                                    <td class="text-end">${{ number_format($totalGananciaProductos, 2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -533,6 +533,29 @@ class PedidoController extends Controller
         $data['resumenVisitador'] = array_values($resumenVisitador);
         $data['totalProductos'] = array_sum(array_column($data['resumenVisitador'], 'total_visitador'));
 
+        // Preparar resumen por productos (agrupando todos los productos sin importar visitador)
+        $resumenProductos = [];
+        foreach ($pedidos->sortBy('producto_id') as $pedido) {
+            $productoNombre = optional($pedido->producto)->nombre ?? 'Sin Producto';
+            
+            if (!isset($resumenProductos[$productoNombre])) {
+                $resumenProductos[$productoNombre] = [
+                    'producto' => $productoNombre,
+                    'cantidad' => 0,
+                    'comision_unitaria' => optional($pedido->producto)->comision ?? 0,
+                ];
+            }
+            
+            $resumenProductos[$productoNombre]['cantidad'] += $pedido->cantidad;
+        }
+        
+        // Ordenar por cantidad descendente
+        usort($resumenProductos, function($a, $b) {
+            return $b['cantidad'] - $a['cantidad'];
+        });
+        
+        $data['resumenProductos'] = $resumenProductos;
+
         if ($request->input('formato') === 'excel') {
             $rows = [];
             $headers = [
