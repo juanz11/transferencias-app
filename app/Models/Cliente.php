@@ -11,7 +11,8 @@ class Cliente extends Model
     protected $fillable = [
         'codigo_cliente',
         'nombre_cliente',
-        'drogueria'
+        'drogueria',
+        'zona'
     ];
 
     public function drogueria()

@@ -30,9 +30,10 @@
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
                     <colgroup>
-                        <col style="width: 20%;">
-                        <col style="width: 40%;">
-                        <col style="width: 30%;">
+                        <col style="width: 15%;">
+                        <col style="width: 35%;">
+                        <col style="width: 25%;">
+                        <col style="width: 15%;">
                         <col style="width: 10%;">
                     </colgroup>
                     <thead>
@@ -40,6 +41,7 @@
                             <th>{{ __('Código') }}</th>
                             <th>{{ __('Nombre') }}</th>
                             <th>{{ __('Droguería') }}</th>
+                            <th>{{ __('Zona') }}</th>
                             <th>{{ __('Acciones') }}</th>
                         </tr>
                     </thead>
@@ -49,6 +51,7 @@
                                 <td>{{ $cliente->codigo_cliente }}</td>
                                 <td>{{ $cliente->nombre_cliente }}</td>
                                 <td>{{ $cliente->drogueria->nombre ?? 'N/A' }}</td>
+                                <td>{{ $cliente->zona ?? '-' }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-sm btn-primary">
