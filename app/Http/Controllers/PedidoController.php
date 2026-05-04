@@ -311,9 +311,45 @@ class PedidoController extends Controller
 
         $pedidos = $query->get();
 
+        // Agrupar por transferencia
+        $pedidosAgrupados = $pedidos->groupBy('transferencia_id')->map(function($items) {
+            $primera = $items->first();
+            return [
+                'transferencia_numero' => $primera->transferencia->transferencia_numero,
+                'fecha_transferencia'  => $primera->transferencia->fecha_transferencia,
+                'cliente'              => optional($primera->transferencia->cliente)->nombre_cliente ?? '-',
+                'pedidos'              => $items,
+            ];
+        })->sortByDesc('fecha_transferencia');
+
+        // Calcular totales generales
+        $totalProductos = $pedidos->sum('cantidad');
+        $totalGanancia = $pedidos->sum(function($pedido) {
+            return $pedido->cantidad * $pedido->producto->comision;
+        });
+
+        // Agrupar por producto para el resumen
+        $resumenProductos = $pedidos->groupBy('producto_id')->map(function($pedidosProducto) {
+            $producto = $pedidosProducto->first()->producto;
+            $cantidadTotal = $pedidosProducto->sum('cantidad');
+            $gananciaTotal = $pedidosProducto->sum(function($pedido) {
+                return $pedido->cantidad * $pedido->producto->comision;
+            });
+            return [
+                'nombre'           => $producto->nombre,
+                'cantidad'         => $cantidadTotal,
+                'comision_unitaria' => $producto->comision,
+                'ganancia'         => $gananciaTotal,
+            ];
+        })->sortByDesc('cantidad');
+
         return view('visitor.pedidos.reporte', [
-            'pedidos' => $pedidos,
-            'visitador' => $visitador,
+            'pedidos'          => $pedidos,
+            'pedidosAgrupados' => $pedidosAgrupados,
+            'visitador'        => $visitador,
+            'totalProductos'   => $totalProductos,
+            'totalGanancia'    => $totalGanancia,
+            'resumenProductos' => $resumenProductos,
         ]);
     }
 
