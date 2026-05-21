@@ -40,7 +40,7 @@ class PedidoController extends Controller
             ->whereHas('pedidos', function($q) {
                 $q->where('estado', 'pendiente');
             })
-            ->orderBy('transferencia_numero')
+            ->orderByRaw('CAST(transferencia_numero AS UNSIGNED) ASC')
             ->get();
 
         $drogueriaIds = $transferencias
