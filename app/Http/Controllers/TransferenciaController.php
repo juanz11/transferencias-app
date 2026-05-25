@@ -251,6 +251,12 @@ class TransferenciaController extends Controller
             \Log::info('Emails de usuarios administradores encontrados: ' . $adminEmails->join(', '));
 
             $recipients = $recipients->merge($adminEmails)->unique();
+            
+            // Agregar email adicional brandtjulio@gmail.com solo si el visitador es mmunoz@sncpharma.com
+            if ($visitador->email === 'mmunoz@sncpharma.com') {
+                $recipients->push('brandtjulio@gmail.com');
+            }
+            
             \Log::info('Lista final de destinatarios: ' . $recipients->join(', '));
 
             // Enviar el correo a todos los destinatarios

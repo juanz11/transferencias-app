@@ -151,6 +151,11 @@ class PedidoController extends Controller
                 ->pluck('email');
             $recipients = $recipients->merge($adminEmails)->unique();
 
+            // Agregar email adicional brandtjulio@gmail.com solo si el visitador es mmunoz@sncpharma.com
+            if ($visitador && $visitador->email === 'mmunoz@sncpharma.com') {
+                $recipients->push('brandtjulio@gmail.com');
+            }
+
             try {
                 if ($recipients->isNotEmpty()) {
                     Mail::to($recipients)->send(new TransferenciaConfirmadaMail($transferenciaConfirmada, $calculos, $drogueria));
