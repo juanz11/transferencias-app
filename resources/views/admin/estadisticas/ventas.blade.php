@@ -56,6 +56,13 @@
                         </div>
                     </form>
 
+                    <!-- Botón descargar PDF -->
+                    <div class="mb-4">
+                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos']) }}" class="btn btn-success">
+                            <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                        </a>
+                    </div>
+
                     <!-- Resumen -->
                     <div class="row mb-4">
                         <div class="col-md-4">

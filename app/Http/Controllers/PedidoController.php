@@ -967,4 +967,71 @@ class PedidoController extends Controller
             'visitadores'
         ));
     }
+
+    public function estadisticasVentasPDF(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+        $visitadorId = $request->input('visitador_id');
+
+        $query = PedidoConfirmado::with(['producto', 'transferenciaConfirmada.transferencia'])
+            ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
+            ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
+            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id');
+
+        if ($fechaInicio && $fechaFin) {
+            $query->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
+                  ->whereDate('transferencias_confirmadas.created_at', '<=', $fechaFin);
+        }
+
+        if ($visitadorId && $visitadorId !== 'todos') {
+            $query->where('transferencias.visitador_id', $visitadorId);
+        }
+
+        $pedidos = $query->select('pedidos_confirmados.*', 'productos.nombre as producto_nombre', 'productos.comision')
+            ->get();
+
+        // Agrupar por producto
+        $ventasPorProducto = $pedidos->groupBy('producto_id')->map(function ($grupo) {
+            $producto = $grupo->first();
+            return [
+                'producto_nombre' => $producto->producto_nombre,
+                'cantidad' => $grupo->sum('cantidad'),
+                'comision' => $producto->comision,
+                'total' => $grupo->sum('cantidad') * $producto->comision
+            ];
+        })->sortByDesc('cantidad')->values();
+
+        // Calcular totales
+        $totalUnidades = $pedidos->sum('cantidad');
+        $totalGanancia = $pedidos->sum(function ($pedido) {
+            return $pedido->cantidad * $pedido->comision;
+        });
+
+        // Contar transferencias únicas en el rango
+        $totalTransferencias = $pedidos->pluck('transferenciaConfirmada.transferencia_id')->unique()->count();
+
+        // Obtener nombre del visitador si está filtrado
+        $visitadorNombre = 'Todos';
+        if ($visitadorId && $visitadorId !== 'todos') {
+            $visitador = Visitador::find($visitadorId);
+            $visitadorNombre = $visitador ? $visitador->nombre : 'Todos';
+        }
+
+        $pdf = \PDF::loadView('admin.estadisticas.ventas-pdf', compact(
+            'ventasPorProducto',
+            'totalUnidades',
+            'totalGanancia',
+            'totalTransferencias',
+            'fechaInicio',
+            'fechaFin',
+            'visitadorNombre'
+        ));
+
+        return $pdf->download('estadisticas-ventas-' . date('Y-m-d') . '.pdf');
+    }
 }
