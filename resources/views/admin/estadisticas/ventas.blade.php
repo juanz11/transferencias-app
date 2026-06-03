@@ -58,7 +58,15 @@
 
                     <!-- Resumen -->
                     <div class="row mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Total Transferencias</h6>
+                                    <h3 class="card-text">{{ number_format($totalTransferencias) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
                                     <h6 class="card-title">Total Unidades Vendidas</h6>
@@ -66,7 +74,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
                                     <h6 class="card-title">Total Ganancia</h6>

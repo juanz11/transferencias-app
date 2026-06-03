@@ -948,6 +948,9 @@ class PedidoController extends Controller
             return $pedido->cantidad * $pedido->comision;
         });
 
+        // Contar transferencias únicas en el rango
+        $totalTransferencias = $pedidos->pluck('transferenciaConfirmada.transferencia_id')->unique()->count();
+
         // Obtener lista de visitadores para el filtro
         $visitadores = Visitador::orderBy('nombre')->get();
 
@@ -957,6 +960,7 @@ class PedidoController extends Controller
             'chartData',
             'totalUnidades',
             'totalGanancia',
+            'totalTransferencias',
             'fechaInicio',
             'fechaFin',
             'visitadorId',
