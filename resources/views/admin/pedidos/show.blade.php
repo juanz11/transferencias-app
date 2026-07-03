@@ -83,6 +83,13 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot>
+                                <tr class="table-dark fw-bold">
+                                    <td>Total</td>
+                                    <td>{{ $transferencia->pedidos->sum('cantidad') }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
