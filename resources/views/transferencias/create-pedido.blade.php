@@ -324,6 +324,9 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                <div id="drogueria-info" class="mt-2" style="display:none;">
+                                    <span class="badge bg-info text-dark fs-6"><i class="fas fa-hospital me-1"></i>Droguería: <span id="drogueria-nombre"></span></span>
+                                </div>
                             </div>
                         </div>
 
@@ -504,13 +507,30 @@
         fechaCorreo.addEventListener('change', validarFechas);
         fechaTransferencia.addEventListener('change', validarFechas);
 
-        const clientes = @json($clientes->map(function($cliente) {
-            return [
-                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
-                'value' => $cliente->codigo_cliente,
-                'nombre' => $cliente->nombre_cliente
-            ];
-        }));
+        const clientes = @json($clientesJs);
+
+        function mostrarDrogueria(nombre) {
+            if (nombre) {
+                $('#drogueria-nombre').text(nombre);
+                $('#drogueria-info').show();
+            } else {
+                $('#drogueria-info').hide();
+            }
+        }
+
+        // Si viene un cliente precargado (old)
+        const codigoInicial = $('.codigo-cliente-hidden').val();
+        if (codigoInicial) {
+            const clienteInicial = clientes.find(c => c.value === codigoInicial);
+            if (clienteInicial) {
+                mostrarDrogueria(clienteInicial.drogueria_nombre);
+            }
+        }
+
+        $('.cliente-input').on('input', function() {
+            $('.codigo-cliente-hidden').val('');
+            mostrarDrogueria('');
+        });
 
         $('.cliente-input').autocomplete({
             source: clientes,
@@ -519,10 +539,11 @@
                 event.preventDefault();
                 $(this).val(ui.item.label);
                 $('.codigo-cliente-hidden').val(ui.item.value);
+                mostrarDrogueria(ui.item.drogueria_nombre);
             }
         }).autocomplete("instance")._renderItem = function(ul, item) {
             return $("<li>")
-                .append("<div>" + item.nombre + "<br><small class='text-muted'>" + item.value + "</small></div>")
+                .append("<div>" + item.nombre + "<br><small class='text-muted'>" + item.value + (item.drogueria_nombre ? ' &mdash; ' + item.drogueria_nombre : '') + "</small></div>")
                 .appendTo(ul);
         };
 

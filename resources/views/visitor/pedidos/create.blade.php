@@ -132,6 +132,9 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            <div id="drogueria-info" class="mt-2" style="display:none;">
+                                <span class="badge bg-info text-dark fs-6"><i class="fas fa-hospital me-1"></i>Droguería: <span id="drogueria-nombre"></span></span>
+                            </div>
                         </div>
 
                         <hr>
@@ -609,14 +612,30 @@
 
         const clientes = @json($clientesJs);
 
+        function mostrarDrogueria(nombre) {
+            if (nombre) {
+                $('#drogueria-nombre').text(nombre);
+                $('#drogueria-info').show();
+            } else {
+                $('#drogueria-info').hide();
+            }
+        }
+
         // Si viene un cliente precargado (old), inicializamos la droguería actual
         const codigoInicial = $('.codigo-cliente-hidden').val();
         if (codigoInicial) {
             const clienteInicial = clientes.find(c => c.value === codigoInicial);
             if (clienteInicial) {
                 currentDrogueriaId = clienteInicial.drogueria;
+                mostrarDrogueria(clienteInicial.drogueria_nombre);
             }
         }
+
+        $('.cliente-input').on('input', function() {
+            $('.codigo-cliente-hidden').val('');
+            currentDrogueriaId = null;
+            mostrarDrogueria('');
+        });
 
         $('.cliente-input').autocomplete({
             source: clientes,
@@ -626,10 +645,11 @@
                 $(this).val(ui.item.label);
                 $('.codigo-cliente-hidden').val(ui.item.value);
                 currentDrogueriaId = ui.item.drogueria;
+                mostrarDrogueria(ui.item.drogueria_nombre);
             }
         }).autocomplete('instance')._renderItem = function(ul, item) {
             return $('<li>')
-                .append('<div>' + item.nombre + '<br><small class="text-muted">' + item.value + '</small></div>')
+                .append('<div>' + item.nombre + '<br><small class="text-muted">' + item.value + (item.drogueria_nombre ? ' &mdash; ' + item.drogueria_nombre : '') + '</small></div>')
                 .appendTo(ul);
         };
     });

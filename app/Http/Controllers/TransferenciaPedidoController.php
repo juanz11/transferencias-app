@@ -24,9 +24,19 @@ class TransferenciaPedidoController extends Controller
     {
         $visitadores = Visitador::all();
         $clientes = Cliente::all();
+        $droguerias = Drogeria::all()->keyBy('id');
+        $clientesJs = $clientes->map(function ($cliente) use ($droguerias) {
+            $drogId = $cliente->getAttribute('drogueria');
+            return [
+                'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
+                'value' => $cliente->codigo_cliente,
+                'nombre' => $cliente->nombre_cliente,
+                'drogueria_nombre' => isset($droguerias[$drogId]) ? $droguerias[$drogId]->nombre : '',
+            ];
+        });
         $productos = Producto::all();
         
-        return view('transferencias.create-pedido', compact('visitadores', 'clientes', 'productos'));
+        return view('transferencias.create-pedido', compact('visitadores', 'clientes', 'clientesJs', 'productos'));
     }
 
     public function store(Request $request)
@@ -146,12 +156,15 @@ class TransferenciaPedidoController extends Controller
         $userEmail = auth()->user()->email;
         $visitador = Visitador::where('email', $userEmail)->firstOrFail();
         $clientes = Cliente::all();
-        $clientesJs = $clientes->map(function ($cliente) {
+        $droguerias = Drogeria::all()->keyBy('id');
+        $clientesJs = $clientes->map(function ($cliente) use ($droguerias) {
+            $drogId = $cliente->getAttribute('drogueria');
             return [
                 'label' => $cliente->nombre_cliente . ' - ' . $cliente->codigo_cliente,
                 'value' => $cliente->codigo_cliente,
                 'nombre' => $cliente->nombre_cliente,
-                'drogueria' => $cliente->drogueria,
+                'drogueria' => $drogId,
+                'drogueria_nombre' => isset($droguerias[$drogId]) ? $droguerias[$drogId]->nombre : '',
             ];
         });
         $productos = Producto::all();
