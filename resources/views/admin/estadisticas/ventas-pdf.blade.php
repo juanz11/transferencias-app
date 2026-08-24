@@ -86,6 +86,7 @@
             <p>Período: {{ date('d/m/Y', strtotime($fechaInicio)) }} - {{ date('d/m/Y', strtotime($fechaFin)) }}</p>
         @endif
         <p>Visitador: {{ $visitadorNombre }}</p>
+        <p>Droguería: {{ $drogueriaNombre }}</p>
     </div>
 
     <div class="resumen">

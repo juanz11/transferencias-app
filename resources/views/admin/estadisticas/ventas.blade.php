@@ -31,7 +31,7 @@
                                     <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin ?? '' }}">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="visitador_id">Visitador</label>
                                     <select class="form-control" id="visitador_id" name="visitador_id">
@@ -44,7 +44,20 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="drogueria_id">Droguería</label>
+                                    <select class="form-control" id="drogueria_id" name="drogueria_id">
+                                        <option value="todas" {{ $drogueriaId === 'todas' || !$drogueriaId ? 'selected' : '' }}>Todas</option>
+                                        @foreach($droguerias as $drogueria)
+                                            <option value="{{ $drogueria->id }}" {{ $drogueriaId == $drogueria->id ? 'selected' : '' }}>
+                                                {{ $drogueria->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <div class="d-flex gap-2">
@@ -58,7 +71,7 @@
 
                     <!-- Botón descargar PDF -->
                     <div class="mb-4">
-                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos']) }}" class="btn btn-success">
+                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos', 'drogueria_id' => $drogueriaId ?? 'todas']) }}" class="btn btn-success">
                             <i class="fas fa-file-pdf me-2"></i>Descargar PDF
                         </a>
                     </div>

@@ -23,13 +23,13 @@
                             <p class="mb-0">{{ optional($transferencia->cliente)->nombre_cliente }}</p>
                         </div>
                         <div class="col-md-4">
-                            <strong>Código cliente:</strong>
+                            <strong>Codigo cliente:</strong>
                             <p class="mb-0">{{ optional($transferencia->cliente)->codigo_cliente }}</p>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <strong>Droguería:</strong>
+                            <strong>Drogueria:</strong>
                             <p class="mb-0">{{ $drogueria ? $drogueria->nombre : '' }}</p>
                         </div>
                     </div>
@@ -44,7 +44,7 @@
                         </div>
                         <div class="col-md-4">
                             <strong>Estado:</strong>
-                            <p class="mb-0">{{ $transferencia->confirmada ? 'Confirmada' : 'Pendiente de aprobación' }}</p>
+                            <p class="mb-0">{{ $transferencia->confirmada ? 'Confirmada' : 'Pendiente de aprobacion' }}</p>
                         </div>
                     </div>
                 </div>
@@ -57,8 +57,8 @@
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-product-asc">Producto A-Z</button>
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-product-desc">Producto Z-A</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-asc">Cantidad ↑</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-desc">Cantidad ↓</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-asc">Cantidad </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="sort-cantidad-desc">Cantidad </button>
                         </div>
                     </div>
                 </div>

@@ -909,11 +909,13 @@ class PedidoController extends Controller
         $fechaInicio = $request->input('fecha_inicio');
         $fechaFin = $request->input('fecha_fin');
         $visitadorId = $request->input('visitador_id');
+        $drogueriaId = $request->input('drogueria_id');
 
         $query = PedidoConfirmado::with(['producto', 'transferenciaConfirmada.transferencia'])
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
             ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
-            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id');
+            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
+            ->join('clientes', 'transferencias.cliente_id', '=', 'clientes.id');
 
         if ($fechaInicio && $fechaFin) {
             $query->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
@@ -922,6 +924,10 @@ class PedidoController extends Controller
 
         if ($visitadorId && $visitadorId !== 'todos') {
             $query->where('transferencias.visitador_id', $visitadorId);
+        }
+
+        if ($drogueriaId && $drogueriaId !== 'todas') {
+            $query->where('clientes.drogueria', $drogueriaId);
         }
 
         $pedidos = $query->select('pedidos_confirmados.*', 'productos.nombre as producto_nombre', 'productos.comision')
@@ -951,8 +957,9 @@ class PedidoController extends Controller
         // Contar transferencias únicas en el rango
         $totalTransferencias = $pedidos->pluck('transferenciaConfirmada.transferencia_id')->unique()->count();
 
-        // Obtener lista de visitadores para el filtro
+        // Obtener lista de visitadores y droguerías para el filtro
         $visitadores = Visitador::orderBy('nombre')->get();
+        $droguerias = Drogeria::orderBy('nombre')->get();
 
         return view('admin.estadisticas.ventas', compact(
             'ventasPorProducto',
@@ -964,7 +971,9 @@ class PedidoController extends Controller
             'fechaInicio',
             'fechaFin',
             'visitadorId',
-            'visitadores'
+            'visitadores',
+            'drogueriaId',
+            'droguerias'
         ));
     }
 
@@ -977,11 +986,13 @@ class PedidoController extends Controller
         $fechaInicio = $request->input('fecha_inicio');
         $fechaFin = $request->input('fecha_fin');
         $visitadorId = $request->input('visitador_id');
+        $drogueriaId = $request->input('drogueria_id');
 
         $query = PedidoConfirmado::with(['producto', 'transferenciaConfirmada.transferencia'])
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
             ->join('transferencias', 'transferencias_confirmadas.transferencia_id', '=', 'transferencias.id')
-            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id');
+            ->join('productos', 'pedidos_confirmados.producto_id', '=', 'productos.id')
+            ->join('clientes', 'transferencias.cliente_id', '=', 'clientes.id');
 
         if ($fechaInicio && $fechaFin) {
             $query->whereDate('transferencias_confirmadas.created_at', '>=', $fechaInicio)
@@ -990,6 +1001,10 @@ class PedidoController extends Controller
 
         if ($visitadorId && $visitadorId !== 'todos') {
             $query->where('transferencias.visitador_id', $visitadorId);
+        }
+
+        if ($drogueriaId && $drogueriaId !== 'todas') {
+            $query->where('clientes.drogueria', $drogueriaId);
         }
 
         $pedidos = $query->select('pedidos_confirmados.*', 'productos.nombre as producto_nombre', 'productos.comision')
@@ -1022,6 +1037,13 @@ class PedidoController extends Controller
             $visitadorNombre = $visitador ? $visitador->nombre : 'Todos';
         }
 
+        // Obtener nombre de la droguería si está filtrada
+        $drogueriaNombre = 'Todas';
+        if ($drogueriaId && $drogueriaId !== 'todas') {
+            $drogueria = Drogeria::find($drogueriaId);
+            $drogueriaNombre = $drogueria ? $drogueria->nombre : 'Todas';
+        }
+
         $pdf = \PDF::loadView('admin.estadisticas.ventas-pdf', compact(
             'ventasPorProducto',
             'totalUnidades',
@@ -1029,7 +1051,8 @@ class PedidoController extends Controller
             'totalTransferencias',
             'fechaInicio',
             'fechaFin',
-            'visitadorNombre'
+            'visitadorNombre',
+            'drogueriaNombre'
         ));
 
         return $pdf->download('estadisticas-ventas-' . date('Y-m-d') . '.pdf');
