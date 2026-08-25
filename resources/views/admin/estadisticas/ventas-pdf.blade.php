@@ -24,22 +24,26 @@
             color: #666;
         }
         .resumen {
-            display: flex;
-            justify-content: space-around;
+            width: 100%;
+            table-layout: fixed;
             margin-bottom: 30px;
             background-color: #f5f5f5;
             padding: 15px;
             border-radius: 5px;
+            border-collapse: collapse;
         }
-        .resumen-item {
+        .resumen td {
+            width: 33.33%;
             text-align: center;
+            vertical-align: top;
+            border: none;
         }
-        .resumen-item h3 {
+        .resumen h3 {
             margin: 0;
             font-size: 24px;
             color: #333;
         }
-        .resumen-item p {
+        .resumen p {
             margin: 5px 0 0;
             color: #666;
             font-size: 11px;
@@ -89,20 +93,22 @@
         <p>Droguería: {{ $drogueriaNombre }}</p>
     </div>
 
-    <div class="resumen">
-        <div class="resumen-item">
-            <h3>{{ number_format($totalTransferencias) }}</h3>
-            <p>Total Transferencias</p>
-        </div>
-        <div class="resumen-item">
-            <h3>{{ number_format($totalUnidades) }}</h3>
-            <p>Total Unidades Vendidas</p>
-        </div>
-        <div class="resumen-item">
-            <h3>${{ number_format($totalGanancia, 2) }}</h3>
-            <p>Total Ganancia</p>
-        </div>
-    </div>
+    <table class="resumen">
+        <tr>
+            <td>
+                <h3>{{ number_format($totalTransferencias) }}</h3>
+                <p>Total Transferencias</p>
+            </td>
+            <td>
+                <h3>{{ number_format($totalUnidades) }}</h3>
+                <p>Total Unidades Vendidas</p>
+            </td>
+            <td>
+                <h3>${{ number_format($totalGanancia, 2) }}</h3>
+                <p>Total Ganancia</p>
+            </td>
+        </tr>
+    </table>
 
     @if($ventasPorProducto->isNotEmpty())
         <table>
