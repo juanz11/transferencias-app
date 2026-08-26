@@ -16,16 +16,16 @@
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
 
-                    <!-- Filtro de fechas y visitador -->
+                    <!-- Filtro de fechas, visitador, droguería y zona -->
                     <form method="GET" action="{{ route('admin.estadisticas.ventas') }}" class="mb-4">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="fecha_inicio">Fecha Inicio</label>
                                     <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ $fechaInicio ?? '' }}">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label for="fecha_fin">Fecha Fin</label>
                                     <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ $fechaFin ?? '' }}">
@@ -59,6 +59,19 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
+                                    <label for="zona">Zona</label>
+                                    <select class="form-control" id="zona" name="zona">
+                                        <option value="todas" {{ $zona === 'todas' || !$zona ? 'selected' : '' }}>Todas</option>
+                                        @foreach($zonas as $z)
+                                            <option value="{{ $z }}" {{ $zona == $z ? 'selected' : '' }}>
+                                                {{ $z }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
                                     <label>&nbsp;</label>
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary flex-grow-1">Filtrar</button>
@@ -71,7 +84,7 @@
 
                     <!-- Botón descargar PDF -->
                     <div class="mb-4">
-                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos', 'drogueria_id' => $drogueriaId ?? 'todas']) }}" class="btn btn-success">
+                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos', 'drogueria_id' => $drogueriaId ?? 'todas', 'zona' => $zona ?? 'todas']) }}" class="btn btn-success">
                             <i class="fas fa-file-pdf me-2"></i>Descargar PDF
                         </a>
                     </div>

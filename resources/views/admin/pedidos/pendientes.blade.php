@@ -16,6 +16,46 @@
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
 
+                    <form method="GET" action="{{ route('admin.pedidos.pendientes') }}" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="drogueria_id">Droguería</label>
+                                    <select class="form-control" id="drogueria_id" name="drogueria_id">
+                                        <option value="todas" {{ $drogueriaId === 'todas' || !$drogueriaId ? 'selected' : '' }}>Todas</option>
+                                        @foreach($droguerias as $drogueria)
+                                            <option value="{{ $drogueria->id }}" {{ $drogueriaId == $drogueria->id ? 'selected' : '' }}>
+                                                {{ $drogueria->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="zona">Zona</label>
+                                    <select class="form-control" id="zona" name="zona">
+                                        <option value="todas" {{ $zona === 'todas' || !$zona ? 'selected' : '' }}>Todas</option>
+                                        @foreach($zonas as $z)
+                                            <option value="{{ $z }}" {{ $zona == $z ? 'selected' : '' }}>
+                                                {{ $z }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary flex-grow-1">Filtrar</button>
+                                        <a href="{{ route('admin.pedidos.pendientes') }}" class="btn btn-secondary">Limpiar</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
                     @if($transferencias->isEmpty())
                         <p class="mb-0">No hay pedidos pendientes.</p>
                     @else

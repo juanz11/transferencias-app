@@ -27,19 +27,36 @@ class PedidoController extends Controller
 
         $visitadores = Visitador::all();
         $drogerias = Drogeria::all();
-        return view('pedidos.index', compact('visitadores', 'drogerias'));
+        $zonas = Cliente::whereNotNull('zona')->where('zona', '!=', '')->distinct()->orderBy('zona')->pluck('zona');
+        return view('pedidos.index', compact('visitadores', 'drogerias', 'zonas'));
     }
 
-    public function pendientes()
+    public function pendientes(Request $request)
     {
         if (!auth()->check() || auth()->user()->rol !== 'admin') {
             return redirect()->route('visitador.home');
         }
 
-        $transferencias = Transferencia::with(['visitador', 'cliente', 'pedidos.producto'])
+        $drogueriaId = $request->input('drogueria_id');
+        $zona = $request->input('zona');
+
+        $query = Transferencia::with(['visitador', 'cliente', 'pedidos.producto'])
             ->whereHas('pedidos', function($q) {
                 $q->where('estado', 'pendiente');
-            })
+            });
+
+        if (($drogueriaId && $drogueriaId !== 'todas') || ($zona && $zona !== 'todas')) {
+            $query->whereHas('cliente', function($q) use ($drogueriaId, $zona) {
+                if ($drogueriaId && $drogueriaId !== 'todas') {
+                    $q->where('drogueria', $drogueriaId);
+                }
+                if ($zona && $zona !== 'todas') {
+                    $q->where('zona', $zona);
+                }
+            });
+        }
+
+        $transferencias = $query
             ->orderByRaw('CAST(transferencia_numero AS UNSIGNED) ASC')
             ->get();
 
@@ -59,7 +76,11 @@ class PedidoController extends Controller
             $transferencia->setAttribute('drogueria_nombre', $drogueriaNombre);
         }
 
-        return view('admin.pedidos.pendientes', compact('transferencias'));
+        // Listas para los filtros
+        $droguerias = Drogeria::orderBy('nombre')->get();
+        $zonas = Cliente::whereNotNull('zona')->where('zona', '!=', '')->distinct()->orderBy('zona')->pluck('zona');
+
+        return view('admin.pedidos.pendientes', compact('transferencias', 'drogueriaId', 'droguerias', 'zona', 'zonas'));
     }
 
     public function showPendiente(Transferencia $transferencia)
@@ -454,6 +475,7 @@ class PedidoController extends Controller
         $visitadorId = $request->input('visitador_id') ?: $request->input('visitador');
         $fechaInicio = $request->input('fecha_inicio');
         $fechaFin = $request->input('fecha_fin');
+        $zona = $request->input('zona');
         
         // Obtener pedidos
         $query = PedidoConfirmado::query()
@@ -474,6 +496,10 @@ class PedidoController extends Controller
 
         if ($request->input('drogueria_id')) {
             $query->where('clientes.drogueria', $request->input('drogueria_id'));
+        }
+
+        if ($zona) {
+            $query->where('clientes.zona', $zona);
         }
 
         if ($request->input('descuento') !== null && $request->input('descuento') !== '') {
@@ -910,6 +936,7 @@ class PedidoController extends Controller
         $fechaFin = $request->input('fecha_fin');
         $visitadorId = $request->input('visitador_id');
         $drogueriaId = $request->input('drogueria_id');
+        $zona = $request->input('zona');
 
         $query = PedidoConfirmado::with(['producto', 'transferenciaConfirmada.transferencia'])
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
@@ -928,6 +955,10 @@ class PedidoController extends Controller
 
         if ($drogueriaId && $drogueriaId !== 'todas') {
             $query->where('clientes.drogueria', $drogueriaId);
+        }
+
+        if ($zona && $zona !== 'todas') {
+            $query->where('clientes.zona', $zona);
         }
 
         $pedidos = $query->select('pedidos_confirmados.*', 'productos.nombre as producto_nombre', 'productos.comision')
@@ -957,9 +988,10 @@ class PedidoController extends Controller
         // Contar transferencias únicas en el rango
         $totalTransferencias = $pedidos->pluck('transferenciaConfirmada.transferencia_id')->unique()->count();
 
-        // Obtener lista de visitadores y droguerías para el filtro
+        // Obtener lista de visitadores, droguerías y zonas para el filtro
         $visitadores = Visitador::orderBy('nombre')->get();
         $droguerias = Drogeria::orderBy('nombre')->get();
+        $zonas = Cliente::whereNotNull('zona')->where('zona', '!=', '')->distinct()->orderBy('zona')->pluck('zona');
 
         return view('admin.estadisticas.ventas', compact(
             'ventasPorProducto',
@@ -973,7 +1005,9 @@ class PedidoController extends Controller
             'visitadorId',
             'visitadores',
             'drogueriaId',
-            'droguerias'
+            'droguerias',
+            'zona',
+            'zonas'
         ));
     }
 
@@ -987,6 +1021,7 @@ class PedidoController extends Controller
         $fechaFin = $request->input('fecha_fin');
         $visitadorId = $request->input('visitador_id');
         $drogueriaId = $request->input('drogueria_id');
+        $zona = $request->input('zona');
 
         $query = PedidoConfirmado::with(['producto', 'transferenciaConfirmada.transferencia'])
             ->join('transferencias_confirmadas', 'pedidos_confirmados.transferencia_confirmada_id', '=', 'transferencias_confirmadas.id')
@@ -1005,6 +1040,10 @@ class PedidoController extends Controller
 
         if ($drogueriaId && $drogueriaId !== 'todas') {
             $query->where('clientes.drogueria', $drogueriaId);
+        }
+
+        if ($zona && $zona !== 'todas') {
+            $query->where('clientes.zona', $zona);
         }
 
         $pedidos = $query->select('pedidos_confirmados.*', 'productos.nombre as producto_nombre', 'productos.comision')
@@ -1044,6 +1083,12 @@ class PedidoController extends Controller
             $drogueriaNombre = $drogueria ? $drogueria->nombre : 'Todas';
         }
 
+        // Obtener zona si está filtrada
+        $zonaNombre = 'Todas';
+        if ($zona && $zona !== 'todas') {
+            $zonaNombre = $zona;
+        }
+
         $pdf = \PDF::loadView('admin.estadisticas.ventas-pdf', compact(
             'ventasPorProducto',
             'totalUnidades',
@@ -1052,7 +1097,8 @@ class PedidoController extends Controller
             'fechaInicio',
             'fechaFin',
             'visitadorNombre',
-            'drogueriaNombre'
+            'drogueriaNombre',
+            'zonaNombre'
         ));
 
         return $pdf->download('estadisticas-ventas-' . date('Y-m-d') . '.pdf');

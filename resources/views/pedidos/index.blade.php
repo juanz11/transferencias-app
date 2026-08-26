@@ -44,6 +44,17 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="zona">Zona</label>
+                                    <select name="zona" id="zona" class="form-control">
+                                        <option value="">Todas las zonas</option>
+                                        @foreach($zonas as $z)
+                                            <option value="{{ $z }}">{{ $z }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-3">

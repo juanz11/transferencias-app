@@ -91,6 +91,7 @@
         @endif
         <p>Visitador: {{ $visitadorNombre }}</p>
         <p>Droguería: {{ $drogueriaNombre }}</p>
+        <p>Zona: {{ $zonaNombre }}</p>
     </div>
 
     <table class="resumen">
