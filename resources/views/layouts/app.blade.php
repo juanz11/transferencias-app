@@ -113,6 +113,11 @@
                                     <i class="fas fa-chart-bar me-2"></i>Estadísticas de Ventas
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('admin.charlas.*') ? 'active' : '' }}" href="{{ route('admin.charlas.index') }}">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Charlas
+                                </a>
+                            </li>
                         @elseif(auth()->user()->rol === 'visitador')
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('visitador.home') ? 'active' : '' }}" href="{{ route('visitador.home') }}">

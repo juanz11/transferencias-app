@@ -24,4 +24,9 @@ class Cliente extends Model
     {
         return $this->hasMany(Transferencia::class, 'cliente_id');
     }
+
+    public function charlas()
+    {
+        return $this->hasMany(Charla::class, 'cliente_id');
+    }
 }

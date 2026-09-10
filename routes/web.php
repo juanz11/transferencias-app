@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\VisitadorController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\CharlaController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -68,6 +69,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('clientes', ClienteController::class)->parameters([
         'clientes' => 'cliente'
     ]);
+
+    // Rutas para charlas (cobertura de venta nacional)
+    Route::get('/admin/charlas', [CharlaController::class, 'index'])->name('admin.charlas.index');
+    Route::get('/admin/charlas/create', [CharlaController::class, 'create'])->name('admin.charlas.create');
+    Route::post('/admin/charlas', [CharlaController::class, 'store'])->name('admin.charlas.store');
+    Route::get('/admin/charlas/{charla}/edit', [CharlaController::class, 'edit'])->name('admin.charlas.edit');
+    Route::put('/admin/charlas/{charla}', [CharlaController::class, 'update'])->name('admin.charlas.update');
+    Route::delete('/admin/charlas/{charla}', [CharlaController::class, 'destroy'])->name('admin.charlas.destroy');
 
     Route::resource('discount_rules', DiscountRuleController::class)->except(['show']);
 });
