@@ -31,15 +31,8 @@ class PedidoController extends Controller
         return view('pedidos.index', compact('visitadores', 'drogerias', 'zonas'));
     }
 
-    public function pendientes(Request $request)
+    private function getTransferenciasPendientes($drogueriaId, $zona)
     {
-        if (!auth()->check() || auth()->user()->rol !== 'admin') {
-            return redirect()->route('visitador.home');
-        }
-
-        $drogueriaId = $request->input('drogueria_id');
-        $zona = $request->input('zona');
-
         $query = Transferencia::with(['visitador', 'cliente', 'pedidos.producto'])
             ->whereHas('pedidos', function($q) {
                 $q->where('estado', 'pendiente');
@@ -76,11 +69,74 @@ class PedidoController extends Controller
             $transferencia->setAttribute('drogueria_nombre', $drogueriaNombre);
         }
 
+        return $transferencias;
+    }
+
+    public function pendientes(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $drogueriaId = $request->input('drogueria_id');
+        $zona = $request->input('zona');
+
+        $transferencias = $this->getTransferenciasPendientes($drogueriaId, $zona);
+
         // Listas para los filtros
         $droguerias = Drogeria::orderBy('nombre')->get();
         $zonas = Cliente::whereNotNull('zona')->where('zona', '!=', '')->distinct()->orderBy('zona')->pluck('zona');
 
         return view('admin.pedidos.pendientes', compact('transferencias', 'drogueriaId', 'droguerias', 'zona', 'zonas'));
+    }
+
+    public function pendientesPDF(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->rol !== 'admin') {
+            return redirect()->route('visitador.home');
+        }
+
+        $drogueriaId = $request->input('drogueria_id');
+        $zona = $request->input('zona');
+
+        $transferencias = $this->getTransferenciasPendientes($drogueriaId, $zona);
+
+        // Totales por producto (solo pedidos pendientes)
+        $totalesPorProducto = [];
+        $totalUnidades = 0;
+        foreach ($transferencias as $transferencia) {
+            foreach ($transferencia->pedidos->where('estado', 'pendiente') as $pedido) {
+                $nombre = $pedido->producto->nombre ?? 'Sin producto';
+                if (!isset($totalesPorProducto[$nombre])) {
+                    $totalesPorProducto[$nombre] = 0;
+                }
+                $totalesPorProducto[$nombre] += $pedido->cantidad;
+                $totalUnidades += $pedido->cantidad;
+            }
+        }
+        arsort($totalesPorProducto);
+
+        $totalTransferencias = $transferencias->count();
+
+        // Nombres de filtros para el encabezado
+        $drogueriaNombre = 'Todas';
+        if ($drogueriaId && $drogueriaId !== 'todas') {
+            $drogueria = Drogeria::find($drogueriaId);
+            $drogueriaNombre = $drogueria ? $drogueria->nombre : 'Todas';
+        }
+
+        $zonaNombre = ($zona && $zona !== 'todas') ? $zona : 'Todas';
+
+        $pdf = \PDF::loadView('admin.pedidos.pendientes-pdf', compact(
+            'transferencias',
+            'totalesPorProducto',
+            'totalUnidades',
+            'totalTransferencias',
+            'drogueriaNombre',
+            'zonaNombre'
+        ));
+
+        return $pdf->download('pedidos-pendientes-' . date('Y-m-d') . '.pdf');
     }
 
     public function showPendiente(Transferencia $transferencia)

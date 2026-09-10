@@ -5,8 +5,11 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Pedidos pendientes</h5>
+                    <a href="{{ route('admin.pedidos.pendientes.pdf', ['drogueria_id' => $drogueriaId, 'zona' => $zona]) }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+                    </a>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
@@ -20,7 +23,7 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="drogueria_id">Droguería</label>
+                                    <label for="drogueria_id">Drogueria</label>
                                     <select class="form-control" id="drogueria_id" name="drogueria_id">
                                         <option value="todas" {{ $drogueriaId === 'todas' || !$drogueriaId ? 'selected' : '' }}>Todas</option>
                                         @foreach($droguerias as $drogueria)
@@ -63,11 +66,11 @@
                             <table class="table table-striped">
                                 <thead>
                                 <tr>
-                                    <th>N° Transferencia</th>
+                                    <th>N# Transferencia</th>
                                     <th>Fecha transferencia</th>
                                     <th>Visitador</th>
                                     <th>Cliente</th>
-                                    <th>Droguería</th>
+                                    <th>Drogueria</th>
                                     <th>Productos (pendientes)</th>
                                     <th>Acciones</th>
                                 </tr>

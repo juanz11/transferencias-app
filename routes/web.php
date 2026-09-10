@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pedidos/enviar-reporte', [PedidoController::class, 'enviarReporteEmail'])->name('pedidos.enviar-reporte');
     Route::get('/visitador/pedidos/reporte', [PedidoController::class, 'reporteVisitador'])->name('visitador.pedidos.reporte');
     Route::get('/admin/pedidos/pendientes', [PedidoController::class, 'pendientes'])->name('admin.pedidos.pendientes');
+    Route::get('/admin/pedidos/pendientes/pdf', [PedidoController::class, 'pendientesPDF'])->name('admin.pedidos.pendientes.pdf');
     Route::get('/admin/pedidos/{transferencia}', [PedidoController::class, 'showPendiente'])->name('admin.pedidos.show');
     Route::get('/admin/pedidos/{transferencia}/edit', [PedidoController::class, 'editPendiente'])->name('admin.pedidos.edit');
     Route::put('/admin/pedidos/{transferencia}', [PedidoController::class, 'updatePendiente'])->name('admin.pedidos.update');
