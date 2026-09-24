@@ -182,16 +182,41 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     @if(!empty($chartLabels) && !empty($chartData))
+        @php
+            $filtros = [];
+            if ($fechaInicio && $fechaFin) {
+                $filtros[] = 'Fecha: ' . \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') . ' a ' . \Carbon\Carbon::parse($fechaFin)->format('d/m/Y');
+            }
+            if ($visitadorId && $visitadorId !== 'todos') {
+                $filtros[] = 'Visitador: ' . ($visitadores->firstWhere('id', $visitadorId)?->nombre ?? $visitadorId);
+            }
+            if ($drogueriaId && $drogueriaId !== 'todas') {
+                $filtros[] = 'Droguería: ' . ($droguerias->firstWhere('id', $drogueriaId)?->nombre ?? $drogueriaId);
+            }
+            if ($zona && $zona !== 'todas') {
+                $filtros[] = 'Zona: ' . $zona;
+            }
+            $filtroTexto = $filtros ? 'Filtrado por: ' . implode('  •  ', $filtros) : '';
+        @endphp
+        const chartLabels = @json($chartLabels);
+        const filtroTexto = @json($filtroTexto);
+        const palette = [
+            ['rgba(54, 130, 235, 0.85)', 'rgb(40, 100, 200)'],
+            ['rgba(235, 80, 80, 0.85)', 'rgb(200, 55, 55)'],
+            ['rgba(245, 195, 60, 0.85)', 'rgb(200, 155, 35)'],
+            ['rgba(60, 180, 100, 0.85)', 'rgb(40, 145, 75)'],
+            ['rgba(150, 95, 220, 0.85)', 'rgb(115, 70, 180)']
+        ];
         const ctx = document.getElementById('ventasChart').getContext('2d');
         const ventasChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: @json($chartLabels),
+                labels: chartLabels,
                 datasets: [{
                     label: 'Unidades Vendidas',
                     data: @json($chartData),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: chartLabels.map((_, i) => palette[i % palette.length][0]),
+                    borderColor: chartLabels.map((_, i) => palette[i % palette.length][1]),
                     borderWidth: 1
                 }]
             },
@@ -215,8 +240,19 @@
                 },
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'top'
+                        display: false
+                    },
+                    title: {
+                        display: filtroTexto.length > 0,
+                        text: filtroTexto,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        color: '#555',
+                        padding: {
+                            bottom: 15
+                        }
                     }
                 }
             }
