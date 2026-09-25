@@ -248,7 +248,7 @@
                                 text: 'Productos'
                             },
                             ticks: {
-                                autoSkip: false
+                                display: false
                             }
                         }
                     },
