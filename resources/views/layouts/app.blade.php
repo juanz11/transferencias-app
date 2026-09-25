@@ -21,6 +21,12 @@
             background-color: rgba(30, 35, 45, 0.95) !important;
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1050;
+        }
+
+        .navbar .dropdown-menu {
+            z-index: 1060;
         }
         
         .navbar-brand img {
@@ -48,6 +54,23 @@
             background-color: rgb(31, 69, 145);
             color: #ffffff !important;
         }
+
+        .dropdown-menu-dark {
+            background-color: rgba(30, 35, 45, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-menu-dark .dropdown-item.active,
+        .dropdown-menu-dark .dropdown-item:active {
+            background-color: rgb(31, 69, 145);
+        }
+
+        .dropdown-menu-dark .dropdown-header {
+            color: #8ab4f8;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
         
         .btn-link.nav-link {
             background: none;
@@ -70,53 +93,74 @@
                 <ul class="navbar-nav me-auto">
                     @auth
                         @if(auth()->user()->rol === 'admin')
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('transferencias.index') }}">Transferencias</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/transferencias/confirmados">Editar Transferencia</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('pedidos.index') }}">Pedidos</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('transferencias.pedidos.create') }}">Crear Pedido</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.pedidos.pendientes') ? 'active' : '' }}" href="{{ route('admin.pedidos.pendientes') }}">
-                                    Control de Transferencias<br>
-                                    <small class="text-light">Gestione sus transferencias y pedidos de manera eficiente</small>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="menuHamburguesa" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bars me-2"></i>Menú
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
-                                    <i class="fas fa-box me-2"></i>Productos
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('visitadores.*') ? 'active' : '' }}" href="{{ route('visitadores.index') }}">
-                                    <i class="fas fa-users me-2"></i>Visitadores
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
-                                    <i class="fas fa-user-tie me-2"></i>Clientes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('discount_rules.*') ? 'active' : '' }}" href="{{ route('discount_rules.index') }}">
-                                    <i class="fas fa-percent me-2"></i>Descuentos
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.estadisticas.*') ? 'active' : '' }}" href="{{ route('admin.estadisticas.ventas') }}">
-                                    <i class="fas fa-chart-bar me-2"></i>Estadísticas de Ventas
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('admin.charlas.*') ? 'active' : '' }}" href="{{ route('admin.charlas.index') }}">
-                                    <i class="fas fa-chalkboard-teacher me-2"></i>Charlas
-                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuHamburguesa">
+                                    <li><h6 class="dropdown-header">Transferencias</h6></li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('transferencias.index') || request()->routeIs('transferencias.reporte') ? 'active' : '' }}" href="{{ route('transferencias.index') }}">
+                                            <i class="fas fa-exchange-alt me-2"></i>Transferencias
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('transferencias.confirmados*') ? 'active' : '' }}" href="/transferencias/confirmados">
+                                            <i class="fas fa-edit me-2"></i>Editar Transferencia
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('admin.pedidos.pendientes') ? 'active' : '' }}" href="{{ route('admin.pedidos.pendientes') }}">
+                                            <i class="fas fa-tasks me-2"></i>Control de Transferencias
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Pedidos</h6></li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('pedidos.index') ? 'active' : '' }}" href="{{ route('pedidos.index') }}">
+                                            <i class="fas fa-clipboard-list me-2"></i>Pedidos
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('transferencias.pedidos.*') ? 'active' : '' }}" href="{{ route('transferencias.pedidos.create') }}">
+                                            <i class="fas fa-plus me-2"></i>Crear Pedido
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Gestión</h6></li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ route('productos.index') }}">
+                                            <i class="fas fa-box me-2"></i>Productos
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('visitadores.*') ? 'active' : '' }}" href="{{ route('visitadores.index') }}">
+                                            <i class="fas fa-users me-2"></i>Visitadores
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('clientes.*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
+                                            <i class="fas fa-user-tie me-2"></i>Clientes
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('discount_rules.*') ? 'active' : '' }}" href="{{ route('discount_rules.index') }}">
+                                            <i class="fas fa-percent me-2"></i>Descuentos
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Reportes</h6></li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('admin.estadisticas.*') ? 'active' : '' }}" href="{{ route('admin.estadisticas.ventas') }}">
+                                            <i class="fas fa-chart-bar me-2"></i>Estadísticas de Ventas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('admin.charlas.*') ? 'active' : '' }}" href="{{ route('admin.charlas.index') }}">
+                                            <i class="fas fa-chalkboard-teacher me-2"></i>Charlas
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         @elseif(auth()->user()->rol === 'visitador')
                             <li class="nav-item">

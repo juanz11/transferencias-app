@@ -111,6 +111,13 @@
         </tr>
     </table>
 
+    @if(!empty($chartImage))
+        <div style="text-align: center; margin-bottom: 25px; page-break-inside: avoid;">
+            <h3 style="margin: 0 0 10px; color: #333;">Ventas por Producto</h3>
+            <img src="{{ $chartImage }}" style="width: 100%; max-width: 720px;">
+        </div>
+    @endif
+
     @if($ventasPorProducto->isNotEmpty())
         <table>
             <thead>

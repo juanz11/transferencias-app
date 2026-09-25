@@ -1145,6 +1145,12 @@ class PedidoController extends Controller
             $zonaNombre = $zona;
         }
 
+        // Imagen del gráfico enviada desde el navegador
+        $chartImage = $request->input('chart_image');
+        if (!is_string($chartImage) || !str_starts_with($chartImage, 'data:image/png;base64,')) {
+            $chartImage = null;
+        }
+
         $pdf = \PDF::loadView('admin.estadisticas.ventas-pdf', compact(
             'ventasPorProducto',
             'totalUnidades',
@@ -1154,7 +1160,8 @@ class PedidoController extends Controller
             'fechaFin',
             'visitadorNombre',
             'drogueriaNombre',
-            'zonaNombre'
+            'zonaNombre',
+            'chartImage'
         ));
 
         return $pdf->download('estadisticas-ventas-' . date('Y-m-d') . '.pdf');
