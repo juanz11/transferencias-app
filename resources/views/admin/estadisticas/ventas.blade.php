@@ -84,18 +84,9 @@
 
                     <!-- Botón descargar PDF -->
                     <div class="mb-4">
-                        <form method="POST" action="{{ route('admin.estadisticas.ventas.pdf') }}">
-                            @csrf
-                            <input type="hidden" name="fecha_inicio" value="{{ $fechaInicio ?? '' }}">
-                            <input type="hidden" name="fecha_fin" value="{{ $fechaFin ?? '' }}">
-                            <input type="hidden" name="visitador_id" value="{{ $visitadorId ?? 'todos' }}">
-                            <input type="hidden" name="drogueria_id" value="{{ $drogueriaId ?? 'todas' }}">
-                            <input type="hidden" name="zona" value="{{ $zona ?? 'todas' }}">
-                            <input type="hidden" name="chart_image" id="chart_image">
-                            <button type="submit" class="btn btn-success" onclick="return prepararPdf()">
-                                <i class="fas fa-file-pdf me-2"></i>Descargar PDF
-                            </button>
-                        </form>
+                        <a href="{{ route('admin.estadisticas.ventas.pdf', ['fecha_inicio' => $fechaInicio ?? '', 'fecha_fin' => $fechaFin ?? '', 'visitador_id' => $visitadorId ?? 'todos', 'drogueria_id' => $drogueriaId ?? 'todas', 'zona' => $zona ?? 'todas']) }}" class="btn btn-success">
+                            <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                        </a>
                     </div>
 
                     <!-- Resumen -->
@@ -216,143 +207,61 @@
             ['rgba(60, 180, 100, 0.85)', 'rgb(40, 145, 75)'],
             ['rgba(150, 95, 220, 0.85)', 'rgb(115, 70, 180)']
         ];
-        function buildChartConfig() {
-            return {
-                type: 'bar',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'Unidades Vendidas',
-                        data: @json($chartData),
-                        backgroundColor: chartLabels.map((_, i) => palette[i % palette.length][0]),
-                        borderColor: chartLabels.map((_, i) => palette[i % palette.length][1]),
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        maxBarThickness: 80
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Unidades'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Productos'
-                            },
-                            ticks: {
-                                display: false
-                            }
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        const ventasChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: @json($chartData),
+                    backgroundColor: chartLabels.map((_, i) => palette[i % palette.length][0]),
+                    borderColor: chartLabels.map((_, i) => palette[i % palette.length][1]),
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    maxBarThickness: 80
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Unidades'
                         }
                     },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
+                    x: {
                         title: {
-                            display: filtroTexto.length > 0,
-                            text: filtroTexto,
-                            font: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            color: '#555',
-                            padding: {
-                                bottom: 15
-                            }
+                            display: true,
+                            text: 'Productos'
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: filtroTexto.length > 0,
+                        text: filtroTexto,
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        color: '#555',
+                        padding: {
+                            bottom: 15
                         }
                     }
                 }
-            };
-        }
-
-        const ctx = document.getElementById('ventasChart').getContext('2d');
-        const ventasChart = new Chart(ctx, buildChartConfig());
+            }
+        });
     @endif
-
-    function prepararPdf() {
-        if (typeof ventasChart === 'undefined') {
-            return true;
-        }
-        const n = chartLabels.length;
-        const maxH = 1850;
-        const perRow = Math.max(26, Math.min(120, Math.floor((maxH - 240) / Math.max(1, n))));
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = 1600;
-        exportCanvas.height = Math.min(maxH, Math.max(900, n * perRow + 240));
-        const rowH = (exportCanvas.height - 240) / Math.max(1, n);
-        const tickFont = Math.max(13, Math.min(24, Math.floor(rowH * 0.42)));
-        const productFont = Math.max(16, Math.min(30, Math.floor(rowH * 0.55)));
-        const cfg = buildChartConfig();
-        cfg.data.datasets[0].maxBarThickness = Math.max(14, Math.floor(rowH * 0.55));
-        cfg.data.datasets[0].barPercentage = 0.7;
-        cfg.data.datasets[0].categoryPercentage = 0.7;
-        cfg.options.indexAxis = 'y';
-        cfg.options.responsive = false;
-        cfg.options.maintainAspectRatio = true;
-        cfg.options.animation = false;
-        cfg.options.layout = { padding: { top: 20, right: 100, bottom: 20, left: 20 } };
-        cfg.options.scales = {
-            x: {
-                beginAtZero: true,
-                grace: '10%',
-                title: {
-                    display: true,
-                    text: 'Unidades',
-                    font: { size: 26, weight: 'bold' }
-                },
-                ticks: { font: { size: tickFont } }
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: 'Productos',
-                    font: { size: 26, weight: 'bold' }
-                },
-                ticks: {
-                    autoSkip: false,
-                    color: '#000',
-                    font: { size: productFont, weight: 'bold' }
-                }
-            }
-        };
-        cfg.options.plugins.title.font.size = 32;
-        const valFont = Math.max(11, Math.min(22, Math.floor(rowH * 0.4)));
-        cfg.plugins = [{
-            id: 'barValues',
-            afterDatasetsDraw(chart) {
-                const c = chart.ctx;
-                chart.data.datasets.forEach((dataset, i) => {
-                    chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                        c.save();
-                        c.fillStyle = '#000';
-                        c.font = 'bold ' + valFont + 'px Arial';
-                        c.textAlign = 'left';
-                        c.textBaseline = 'middle';
-                        c.fillText(Number(dataset.data[index]).toLocaleString('es-ES'), bar.x + 12, bar.y);
-                        c.restore();
-                    });
-                });
-            }
-        }];
-        const tmpChart = new Chart(exportCanvas.getContext('2d'), cfg);
-        const final = document.createElement('canvas');
-        final.width = exportCanvas.width;
-        final.height = exportCanvas.height;
-        const fctx = final.getContext('2d');
-        fctx.fillStyle = '#ffffff';
-        fctx.fillRect(0, 0, final.width, final.height);
-        fctx.drawImage(exportCanvas, 0, 0);
-        document.getElementById('chart_image').value = final.toDataURL('image/png');
-        tmpChart.destroy();
-        return true;
-    }
 </script>
 @endsection

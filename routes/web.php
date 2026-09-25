@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/pedidos/{transferencia}/cambiar-estado', [PedidoController::class, 'cambiarEstado'])->name('admin.pedidos.cambiar-estado');
     Route::delete('/admin/pedidos/{transferencia}', [PedidoController::class, 'destroyPendiente'])->name('admin.pedidos.destroy');
     Route::get('/admin/estadisticas-ventas', [PedidoController::class, 'estadisticasVentas'])->name('admin.estadisticas.ventas');
-    Route::match(['get', 'post'], '/admin/estadisticas-ventas/pdf', [PedidoController::class, 'estadisticasVentasPDF'])->name('admin.estadisticas.ventas.pdf');
+    Route::get('/admin/estadisticas-ventas/pdf', [PedidoController::class, 'estadisticasVentasPDF'])->name('admin.estadisticas.ventas.pdf');
 
     // Rutas para crear pedidos y transferencias confirmadas
     Route::get('/transferencias/pedidos/create', [TransferenciaPedidoController::class, 'create'])->name('transferencias.pedidos.create');
