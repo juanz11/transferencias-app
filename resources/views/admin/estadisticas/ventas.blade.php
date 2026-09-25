@@ -282,11 +282,11 @@
             return true;
         }
         const n = chartLabels.length;
-        const maxH = 1650;
-        const perRow = Math.max(26, Math.min(110, Math.floor((maxH - 240) / Math.max(1, n))));
+        const maxH = 1850;
+        const perRow = Math.max(26, Math.min(120, Math.floor((maxH - 240) / Math.max(1, n))));
         const exportCanvas = document.createElement('canvas');
         exportCanvas.width = 1600;
-        exportCanvas.height = Math.min(maxH, Math.max(850, n * perRow + 240));
+        exportCanvas.height = Math.min(maxH, Math.max(900, n * perRow + 240));
         const rowH = (exportCanvas.height - 240) / Math.max(1, n);
         const tickFont = Math.max(13, Math.min(24, Math.floor(rowH * 0.42)));
         const productFont = Math.max(16, Math.min(30, Math.floor(rowH * 0.55)));
