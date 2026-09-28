@@ -12,11 +12,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 1rem;
+            table-layout: fixed;
         }
         .table th, .table td {
             border: 1px solid #dee2e6;
             padding: 8px;
             text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .tabla-detalle th, .tabla-detalle td {
+            padding: 4px 5px;
+            font-size: 10px;
         }
         .table th {
             background-color: #f8f9fa;
@@ -41,7 +48,18 @@
     <h2>Reporte de Pedidos - {{ $tipoVista === 'agrupado' ? 'Vista Agrupada' : 'Vista Individual' }}</h2>
     
     <!-- Tabla principal -->
-    <table class="table">
+    <table class="table tabla-detalle">
+        <colgroup>
+            <col style="width: 9%;">
+            <col style="width: 9%;">
+            <col style="width: 12%;">
+            <col style="width: 13%;">
+            <col style="width: 18%;">
+            <col style="width: 7%;">
+            <col style="width: 8%;">
+            <col style="width: 11%;">
+            <col style="width: 13%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>Fecha Transferencia</th>
@@ -102,6 +120,12 @@
     <!-- Resumen por Visitador -->
     <h4>Resumen por Visitador</h4>
     <table class="table">
+        <colgroup>
+            <col style="width: 25%;">
+            <col style="width: 40%;">
+            <col style="width: 15%;">
+            <col style="width: 20%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>Visitador</th>

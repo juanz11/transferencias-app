@@ -12,11 +12,14 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 1rem;
+            table-layout: fixed;
         }
         .table th, .table td {
             border: 1px solid #dee2e6;
             padding: 8px;
             text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .table th {
             background-color: #f8f9fa;
@@ -43,6 +46,12 @@
         <p>Período: {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}</p>
     @endif
     <table class="table">
+        <colgroup>
+            <col style="width: 25%;">
+            <col style="width: 40%;">
+            <col style="width: 15%;">
+            <col style="width: 20%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>Visitador</th>

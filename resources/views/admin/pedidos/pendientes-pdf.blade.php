@@ -38,6 +38,11 @@
             padding: 5px 6px;
             text-align: left;
             vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .tabla-pedidos {
+            table-layout: fixed;
         }
         th {
             background-color: #1f4591;
@@ -88,7 +93,15 @@
         <strong>Zona:</strong> {{ $zonaNombre }}
     </div>
 
-    <table>
+    <table class="tabla-pedidos">
+        <colgroup>
+            <col style="width: 9%;">
+            <col style="width: 9%;">
+            <col style="width: 15%;">
+            <col style="width: 16%;">
+            <col style="width: 14%;">
+            <col style="width: 37%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>N° Transf.</th>
