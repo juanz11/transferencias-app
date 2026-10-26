@@ -112,6 +112,40 @@
                             </table>
                         </div>
                     @endif
+
+                    @if(isset($totalesPorProducto) && !empty($totalesPorProducto))
+                        <div class="card mt-4">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Resumen de unidades por producto</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th class="text-end">Unidades totales</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($totalesPorProducto as $producto => $unidades)
+                                                <tr>
+                                                    <td>{{ $producto }}</td>
+                                                    <td class="text-end fw-bold">{{ number_format($unidades) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="table-secondary">
+                                                <td class="fw-bold">Total general</td>
+                                                <td class="text-end fw-bold">{{ number_format($totalUnidades) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

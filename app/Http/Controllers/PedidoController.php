@@ -83,11 +83,26 @@ class PedidoController extends Controller
 
         $transferencias = $this->getTransferenciasPendientes($drogueriaId, $zona);
 
+        // Totales por producto (solo pedidos pendientes)
+        $totalesPorProducto = [];
+        $totalUnidades = 0;
+        foreach ($transferencias as $transferencia) {
+            foreach ($transferencia->pedidos->where('estado', 'pendiente') as $pedido) {
+                $nombre = $pedido->producto->nombre ?? 'Sin producto';
+                if (!isset($totalesPorProducto[$nombre])) {
+                    $totalesPorProducto[$nombre] = 0;
+                }
+                $totalesPorProducto[$nombre] += $pedido->cantidad;
+                $totalUnidades += $pedido->cantidad;
+            }
+        }
+        arsort($totalesPorProducto);
+
         // Listas para los filtros
         $droguerias = Drogeria::orderBy('nombre')->get();
         $zonas = Cliente::whereNotNull('zona')->where('zona', '!=', '')->distinct()->orderBy('zona')->pluck('zona');
 
-        return view('admin.pedidos.pendientes', compact('transferencias', 'drogueriaId', 'droguerias', 'zona', 'zonas'));
+        return view('admin.pedidos.pendientes', compact('transferencias', 'drogueriaId', 'droguerias', 'zona', 'zonas', 'totalesPorProducto', 'totalUnidades'));
     }
 
     public function pendientesPDF(Request $request)
