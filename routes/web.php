@@ -10,6 +10,7 @@ use App\Http\Controllers\VisitadorController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CharlaController;
+use App\Http\Controllers\CoberturaController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -80,4 +81,46 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/charlas/{charla}', [CharlaController::class, 'destroy'])->name('admin.charlas.destroy');
 
     Route::resource('discount_rules', DiscountRuleController::class)->except(['show']);
+
+    // Rutas para cobertura
+    Route::get('/cobertura', [CoberturaController::class, 'index'])->name('cobertura.index');
+});
+
+
+// Ruta de prueba para la conexión API
+Route::get('/test-api-connection', function () {
+    if (!auth()->check() || auth()->user()->rol !== 'admin') {
+        return redirect()->route('visitador.home');
+    }
+    
+    $service = new App\Services\VisitasBackendService();
+    
+    $html = '<h1>Prueba de conexión API</h1>';
+    $html .= '<p><strong>URL base configurada:</strong> ' . config('cobertura.visitas_backend_url') . '</p>';
+    $html .= '<p><strong>URL desde servicio:</strong> ' . $service->getBaseUrl() . '</p>';
+    
+    try {
+        $html .= '<h3>Probando conexión con parámetros:</h3>';
+        $html .= '<ul>';
+        $html .= '<li>Fecha desde: 2025-05-28</li>';
+        $html .= '<li>Fecha hasta: 2025-11-24</li>';
+        $html .= '<li>Visitador ID: 0</li>';
+        $html .= '</ul>';
+        
+        $result = $service->obtenerMedicosVisitados('2025-05-28', '2025-11-24', 0);
+        
+        if (empty($result)) {
+            $html .= '<div class="alert alert-warning">No se recibieron datos o hubo un error.</div>';
+        } else {
+            $html .= '<div class="alert alert-success">¡Conexión exitosa!</div>';
+            $html .= '<p><strong>Número de registros:</strong> ' . count($result) . '</p>';
+            $html .= '<h4>Primeros 3 registros:</h4>';
+            $html .= '<pre>' . htmlspecialchars(json_encode(array_slice($result, 0, 3), JSON_PRETTY_PRINT)) . '</pre>';
+        }
+        
+    } catch (Exception $e) {
+        $html .= '<div class="alert alert-danger"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
+    }
+    
+    return $html;
 });

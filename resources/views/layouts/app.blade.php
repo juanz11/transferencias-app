@@ -160,6 +160,11 @@
                                             <i class="fas fa-chalkboard-teacher me-2"></i>Charlas
                                         </a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('cobertura.*') ? 'active' : '' }}" href="{{ route('cobertura.index') }}">
+                                            <i class="fas fa-globe me-2"></i>Cobertura
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         @elseif(auth()->user()->rol === 'visitador')
